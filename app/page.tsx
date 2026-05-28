@@ -1,65 +1,541 @@
-import Image from "next/image";
+// app/page.tsx
 
-export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+"use client";
+
+import Image from "next/image";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "./lib/supabase";
+import { Eye, EyeOff } from "lucide-react";
+
+export default function LandingPage() {
+  const router = useRouter();
+  const [mode, setMode] = useState<"login" | "register">("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [checkingSession, setCheckingSession] = useState(true);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setCheckingSession(false), 4000);
+    (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", user.id)
+            .maybeSingle();
+          if (data?.role === "admin") {
+            router.replace("/members/dashboard");
+          } else if (data?.role === "member") {
+            router.replace("/member-portal");
+          } else {
+            setCheckingSession(false);
+          }
+        } else {
+          setCheckingSession(false);
+        }
+      } catch (e) {
+        setCheckingSession(false);
+      } finally {
+        clearTimeout(timeout);
+      }
+    })();
+  }, []);
+
+  const handleLogin = async () => {
+    setError(""); setSuccess("");
+    if (!email || !password) { setError("Please enter your email and password."); return; }
+    setLoading(true);
+    const { data, error: err } = await supabase.auth.signInWithPassword({ email, password });
+    if (err) { setError(err.message); setLoading(false); return; }
+    const { data: profile } = await supabase
+      .from("profiles").select("role").eq("id", data.user.id).maybeSingle();
+    if (profile?.role === "admin") {
+      router.replace("/members/dashboard");
+    } else {
+      router.replace("/member-portal");
+    }
+  };
+
+  const handleRegister = async () => {
+    setError(""); setSuccess("");
+    if (!email || !password) { setError("Please fill in all fields."); return; }
+    if (password.length < 6) { setError("Password must be at least 6 characters."); return; }
+    setLoading(true);
+    const { error: err } = await supabase.auth.signUp({ email, password });
+    setLoading(false);
+    if (err) { setError(err.message); return; }
+    setSuccess("Account created! You can now sign in.");
+    setMode("login");
+    setPassword("");
+  };
+
+  const handleSubmit = () => mode === "login" ? handleLogin() : handleRegister();
+
+  if (checkingSession) return (
+    <div style={{ minHeight: "100vh", background: "#eef2f9", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ width: 28, height: 28, border: "2.5px solid rgba(30,45,90,0.15)", borderTopColor: "#3b5bdb", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
+  );
+
+  return (
+    <>
+      <style>{`
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        .land-root {
+          min-height: 100vh;
+          background: #eef2f9;
+          background-image:
+            radial-gradient(ellipse 70% 60% at 20% 10%, rgba(180,205,255,0.55) 0%, transparent 65%),
+            radial-gradient(ellipse 50% 50% at 80% 90%, rgba(199,231,219,0.4) 0%, transparent 60%),
+            radial-gradient(ellipse 40% 35% at 60% 50%, rgba(230,225,255,0.3) 0%, transparent 55%);
+          display: flex;
+          position: relative;
+          overflow: hidden;
+        }
+
+        /* Subtle decorative orbs */
+        .land-orb {
+          position: absolute;
+          border-radius: 50%;
+          filter: blur(70px);
+          pointer-events: none;
+        }
+        .land-orb-1 {
+          width: 480px; height: 480px;
+          background: radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%);
+          top: -100px; left: -80px;
+        }
+        .land-orb-2 {
+          width: 360px; height: 360px;
+          background: radial-gradient(circle, rgba(52,211,153,0.09) 0%, transparent 70%);
+          bottom: -60px; right: -40px;
+        }
+        .land-orb-3 {
+          width: 260px; height: 260px;
+          background: radial-gradient(circle, rgba(251,191,36,0.07) 0%, transparent 70%);
+          top: 45%; left: 42%;
+        }
+
+        /* Left panel */
+        .land-left {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          padding: 60px 64px;
+          position: relative;
+          z-index: 1;
+        }
+        @media (max-width: 900px) { .land-left { display: none; } }
+
+        .land-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          background: rgba(99,102,241,0.1);
+          border: 1px solid rgba(99,102,241,0.22);
+          border-radius: 100px;
+          padding: 6px 14px;
+          font-size: 12px;
+          font-weight: 600;
+          color: #4338ca;
+          letter-spacing: 0.04em;
+          margin-bottom: 32px;
+          width: fit-content;
+        }
+        .land-badge-dot {
+          width: 6px; height: 6px;
+          border-radius: 50%;
+          background: #6366f1;
+          animation: pulse-dot 2s ease-in-out infinite;
+        }
+        @keyframes pulse-dot {
+          0%,100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.45; transform: scale(0.8); }
+        }
+
+        .land-headline {
+          font-size: 50px;
+          font-weight: 700;
+          line-height: 1.1;
+          letter-spacing: -0.03em;
+          color: #1e2d5a;
+          margin-bottom: 20px;
+        }
+        .land-headline span {
+          background: linear-gradient(135deg, #4f46e5 0%, #0ea5e9 60%, #34d399 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        .land-desc {
+          font-size: 16px;
+          color: #4a5678;
+          line-height: 1.75;
+          max-width: 400px;
+          margin-bottom: 48px;
+        }
+
+        /* Subtle divider line */
+        .land-divider {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          margin-bottom: 32px;
+        }
+        .land-divider-line {
+          flex: 1;
+          height: 1px;
+          background: rgba(30,45,90,0.1);
+          max-width: 80px;
+        }
+        .land-divider-text {
+          font-size: 12px;
+          color: #7b88a8;
+          font-weight: 500;
+          letter-spacing: 0.05em;
+        }
+
+        /* Right panel */
+        .land-right {
+          width: 500px;
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 40px 48px;
+          position: relative;
+          z-index: 1;
+        }
+        @media (max-width: 900px) {
+          .land-right {
+            width: 100%;
+            padding: 40px 24px;
+          }
+        }
+
+        .land-form-wrap {
+          width: 100%;
+          max-width: 380px;
+          background: rgba(255,255,255,0.85);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(255,255,255,0.9);
+          border-radius: 20px;
+          padding: 36px 36px 32px;
+          box-shadow:
+            0 4px 24px rgba(30,45,90,0.08),
+            0 1px 4px rgba(30,45,90,0.04);
+        }
+
+        /* Logo + title */
+        .land-form-logo {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 28px;
+        }
+        .land-form-logo-box {
+          width: 46px; height: 46px;
+          border-radius: 13px;
+          background: #f0f4ff;
+          border: 1px solid rgba(99,102,241,0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .land-form-logo-name {
+          text-transform: uppercase;
+          font-size: 13.5px;
+          font-weight: 700;
+          color: #1e2d5a;
+          line-height: 1.25;
+          letter-spacing: -0.01em;
+        }
+        .land-form-logo-sub {
+          font-size: 11px;
+          color: #7b88a8;
+          font-weight: 500;
+          margin-top: 3px;
+        }
+
+        /* Welcome text */
+        .land-form-heading {
+          font-size: 20px;
+          font-weight: 700;
+          color: #1e2d5a;
+          margin-bottom: 4px;
+          letter-spacing: -0.02em;
+        }
+        .land-form-sub {
+          font-size: 13px;
+          color: #7b88a8;
+          margin-bottom: 24px;
+          line-height: 1.5;
+        }
+
+        /* Tabs */
+        .land-tabs {
+          display: flex;
+          background: #f0f4ff;
+          border: 1px solid rgba(99,102,241,0.12);
+          border-radius: 11px;
+          padding: 4px;
+          margin-bottom: 24px;
+        }
+        .land-tab {
+          flex: 1;
+          padding: 9px;
+          border-radius: 8px;
+          border: none;
+          background: transparent;
+          font-size: 13.5px;
+          font-weight: 600;
+          color: #7b88a8;
+          cursor: pointer;
+          transition: all 0.16s;
+        }
+        .land-tab.active {
+          background: #fff;
+          color: #3730a3;
+          box-shadow: 0 1px 6px rgba(30,45,90,0.1);
+        }
+
+        /* Alert boxes */
+        .land-error {
+          padding: 11px 14px;
+          background: #fff5f5;
+          border: 1px solid rgba(239,68,68,0.2);
+          border-radius: 10px;
+          font-size: 13px;
+          color: #b91c1c;
+          margin-bottom: 16px;
+          line-height: 1.4;
+        }
+        .land-success {
+          padding: 11px 14px;
+          background: #f0fdf4;
+          border: 1px solid rgba(52,211,153,0.25);
+          border-radius: 10px;
+          font-size: 13px;
+          color: #065f46;
+          margin-bottom: 16px;
+          line-height: 1.4;
+        }
+
+        /* Fields */
+        .land-field { margin-bottom: 16px; }
+        .land-label {
+          display: block;
+          font-size: 11.5px;
+          font-weight: 700;
+          color: #4a5678;
+          letter-spacing: 0.07em;
+          text-transform: uppercase;
+          margin-bottom: 7px;
+        }
+        .land-input-wrap { position: relative; }
+        .land-input {
+          width: 100%;
+          padding: 11px 15px;
+          border-radius: 10px;
+          border: 1.5px solid #dde3f0;
+          background: #fff;
+          font-size: 14px;
+          color: #1e2d5a;
+          outline: none;
+          transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .land-input:focus {
+          border-color: #818cf8;
+          box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+        }
+        .land-input::placeholder { color: #b0bbd4; }
+        .land-input.has-eye { padding-right: 46px; }
+
+        .land-eye {
+          position: absolute;
+          right: 12px;
+          top: 50%;
+          transform: translateY(-50%);
+          background: none;
+          border: none;
+          color: #aab4cc;
+          cursor: pointer;
+          padding: 4px;
+          border-radius: 6px;
+          display: flex;
+          align-items: center;
+          transition: color 0.12s;
+        }
+        .land-eye:hover { color: #4a5678; }
+
+        /* Submit */
+        .land-btn {
+          width: 100%;
+          padding: 13px;
+          border-radius: 11px;
+          border: none;
+          background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+          color: #fff;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          box-shadow: 0 4px 16px rgba(79,70,229,0.3);
+          letter-spacing: 0.01em;
+          margin-top: 8px;
+        }
+        .land-btn:hover:not(:disabled) {
+          opacity: 0.91;
+          box-shadow: 0 6px 22px rgba(79,70,229,0.38);
+        }
+        .land-btn:active:not(:disabled) { transform: scale(0.99); }
+        .land-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .land-spinner {
+          width: 15px; height: 15px;
+          border: 2px solid rgba(255,255,255,0.3);
+          border-top-color: #fff;
+          border-radius: 50%;
+          animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .land-hint {
+          text-align: center;
+          font-size: 12px;
+          color: #9aa3bc;
+          margin-top: 18px;
+          line-height: 1.55;
+        }
+      `}</style>
+
+      <div className="land-root">
+        <div className="land-orb land-orb-1" />
+        <div className="land-orb land-orb-2" />
+        <div className="land-orb land-orb-3" />
+
+        {/* LEFT PANEL */}
+        <div className="land-left">
+          <div className="land-badge">
+            <div className="land-badge-dot" />
+            Church Membership Directory
+          </div>
+          <h1 className="land-headline">
+            Welcome to<br />our church<br /><span>family.</span>
+          </h1>
+          <p className="land-desc">
+            Keeping our congregation connected — one family at a time. This is the membership home of the{" "}
+            <strong style={{ color: "#1e2d5a" }}>United Church of Christ in the Philippines, Iligan City</strong>.
+          </p>
+
+          <div className="land-divider">
+            <div className="land-divider-line" />
+            <span className="land-divider-text">Members portal</span>
+            <div className="land-divider-line" />
+          </div>
+        </div>
+
+        {/* RIGHT PANEL */}
+        <div className="land-right">
+          <div className="land-form-wrap">
+
+            <div className="land-form-logo">
+              <div className="land-form-logo-box">
+                <Image src="/uccp-logo.png" alt="UCCP" width={26} height={26} />
+              </div>
+              <div>
+                <div className="land-form-logo-name">United Church of Christ<br/> in the Philippines</div>
+                <div className="land-form-logo-sub">Iligan City Church</div>
+              </div>
+            </div>
+
+            <div className="land-form-heading">
+              {mode === "login" ? "Welcome back" : "Join the directory"}
+            </div>
+            <div className="land-form-sub">
+              {mode === "login"
+                ? "Sign in to access the membership portal."
+                : "Create an account to get connected with the congregation."}
+            </div>
+
+            <div className="land-tabs">
+              <button
+                className={`land-tab ${mode === "login" ? "active" : ""}`}
+                onClick={() => { setMode("login"); setError(""); setSuccess(""); }}>
+                Sign In
+              </button>
+              <button
+                className={`land-tab ${mode === "register" ? "active" : ""}`}
+                onClick={() => { setMode("register"); setError(""); setSuccess(""); }}>
+                Register
+              </button>
+            </div>
+
+            {error && <div className="land-error">⚠ {error}</div>}
+            {success && <div className="land-success">✓ {success}</div>}
+
+            <div className="land-field">
+              <label className="land-label">Email Address</label>
+              <input
+                className="land-input"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={e => { setEmail(e.target.value); setError(""); }}
+                onKeyDown={e => e.key === "Enter" && handleSubmit()}
+              />
+            </div>
+
+            <div className="land-field">
+              <label className="land-label">Password</label>
+              <div className="land-input-wrap">
+                <input
+                  className="land-input has-eye"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={e => { setPassword(e.target.value); setError(""); }}
+                  onKeyDown={e => e.key === "Enter" && handleSubmit()}
+                />
+                <button className="land-eye" type="button" onClick={() => setShowPassword(p => !p)}>
+                  {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+            </div>
+
+            <button className="land-btn" onClick={handleSubmit} disabled={loading}>
+              {loading
+                ? <><div className="land-spinner" />{mode === "login" ? "Signing in…" : "Creating account…"}</>
+                : mode === "login" ? "Sign In" : "Create Account"
+              }
+            </button>
+
+            <p className="land-hint">
+              {mode === "login"
+                ? "We're glad you're here."
+                : "Joining the directory helps us stay connected as a congregation."}
+            </p>
+
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
