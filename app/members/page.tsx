@@ -1049,7 +1049,7 @@ export default function MembersListPage() {
                     return (
                       <tr key={m.id}>
                         {visibleColumns.red_book_no && <td style={{color:"#8c8480",fontWeight:500}}>{m.red_book_no || "—"}</td>}
-                        {visibleColumns.name && <td className="ml-name-cell">{m.last_name}, {m.first_name}{m.middle_name ? ` ${m.middle_name}` : ""}</td>}
+                        {visibleColumns.name && <td className="ml-name-cell">{m.last_name}, {m.first_name}{m.middle_name ? ` ${m.middle_name}` : ""} {m.suffix ? ` ${m.suffix}` : ""}</td>}
                         {visibleColumns.fellowship && <td>{m.fellowship || "—"}</td>}
                         {visibleColumns.membership_type && <td>{m.membership_type || "—"}</td>}
                         {visibleColumns.status && <td>
