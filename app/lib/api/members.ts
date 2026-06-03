@@ -1,5 +1,4 @@
 // app/lib/api/members.ts
-// ─── All Supabase DB queries for members in one place ────────────────────────
 
 import { supabase } from "../supabase";
 import { useState, useEffect } from "react";
