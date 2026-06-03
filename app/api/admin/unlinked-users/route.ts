@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 
 const adminClient = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!   // ← server-only, never sent to browser
+  process.env.SUPABASE_SERVICE_ROLE_KEY!   
 );
 
 export async function GET() {
