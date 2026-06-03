@@ -64,3 +64,18 @@ export type FormState = Omit<Member, "id" | "created_at" | "updated_at" | "sex" 
   interest_skills: string[];
   church_involvement: string[];
 };
+
+export type SettingsState = {
+  church_name: string;
+  church_address: string;
+  church_email: string;
+  fellowships: string[];
+  ministers: string[];
+};
+
+export interface ToastState {
+  show: boolean;
+  type: "success" | "error";
+  title: string;
+  sub: string;
+}

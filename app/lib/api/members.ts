@@ -2,6 +2,7 @@
 // ─── All Supabase DB queries for members in one place ────────────────────────
 
 import { supabase } from "../supabase";
+import { useState, useEffect } from "react";
 import type { Member, FormState } from "../types";
 
 /**
@@ -109,4 +110,40 @@ export async function fetchMemberCount(): Promise<number> {
     .from("members")
     .select("*", { count: "exact", head: true });
   return count ?? 0;
+}
+
+
+export function useSettings() {
+  const [settings, setSettings] = useState<{
+    church_name: string;
+    church_address: string;
+    church_email: string;
+    fellowships: string[];
+    ministers: string[];
+  } | null>(null);
+
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      const { data, error } = await supabase
+        .from("settings")
+        .select("*")
+        .eq("id", 1)
+        .single();
+
+      if (error) {
+        console.error(error);
+        setSettings(null);
+      } else {
+        setSettings(data);
+      }
+
+      setLoading(false);
+    }
+
+    load();
+  }, []);
+
+  return { settings, loading };
 }

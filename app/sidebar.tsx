@@ -6,7 +6,7 @@ import { supabase } from "@/app/lib/supabase";
 import { fetchMemberCount } from "@/app/lib/api/members";
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Users, BarChart3, FileText, LogOut, X } from "lucide-react";
+import { LayoutDashboard, Users, BarChart3, FileText, LogOut, Settings } from "lucide-react";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -26,6 +26,9 @@ export default function Sidebar() {
     };
 
     fetchData();
+
+    window.addEventListener("member-count-changed", fetchData);
+    return () => window.removeEventListener("member-count-changed", fetchData);
   }, []);
 
   const handleLogout = async () => {
@@ -39,6 +42,7 @@ export default function Sidebar() {
     { name: "Members", href: "/members", icon: Users, badge: memberCount },
     { name: "Analytics", href: "/members/analytics", icon: BarChart3 },
     { name: "Reports", href: "/members/reports", icon: FileText },
+    { name: "Settings",  href: "/members/settings",   icon: Settings },
   ];
 
   const initials = userEmail ? userEmail.slice(0, 2).toUpperCase() : "AD";

@@ -51,6 +51,33 @@ export default function ReportsPage() {
   const [page, setPage]                     = useState(1);
   const [rowsPerPage, setRowsPerPage]       = useState(10);
 
+  const [aiSummary,   setAiSummary]   = useState('')
+  const [summarizing, setSummarizing] = useState(false)
+
+  async function handleSummarize() {
+    if (processedMembers.length === 0) return
+    setSummarizing(true)
+    setAiSummary('')
+    try {
+      const res = await fetch('/api/ai/summarize-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          members: processedMembers,
+          // pass your existing active filters so the summary knows context
+          filters: { statusFilter, sortBy, birthMonth, weddingMonth },
+        }),
+      })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      setAiSummary(data.summary)
+    } catch (err) {
+      setAiSummary('Could not generate summary. Please try again.')
+    } finally {
+      setSummarizing(false)
+    }
+  }
+
   /* ─── fetch ─── */
   useEffect(() => {
     const loadMembers = async () => {
@@ -265,6 +292,46 @@ export default function ReportsPage() {
             ))}
           </div>
         </div>
+
+        {/* ─── AI Summary button ─── */}
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400">
+            Member Report Preview
+          </h2>
+          <button
+            onClick={handleSummarize}
+            disabled={summarizing || processedMembers.length === 0}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl
+                      border border-[#c5daf0] bg-[#e8f1f9] text-[#1a4f7a]
+                      hover:bg-[#d0e6f5] disabled:opacity-40 transition"
+          >
+            {summarizing ? (
+              <>
+                <div style={{width:13,height:13,border:"2px solid rgba(26,79,122,0.2)",
+                    borderTopColor:"#1a4f7a",borderRadius:"50%",
+                    animation:"spin 0.7s linear infinite"}} />
+                Summarizing…
+              </>
+            ) : (
+              <>✦ Summarize with AI</>
+            )}
+          </button>
+        </div>
+
+        {/* ─── AI Summary result ─── */}
+        {aiSummary && (
+          <div className="mb-5 p-4 bg-[#e8f1f9] border border-[#c5daf0] rounded-xl">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[#1a4f7a]">
+                AI Summary
+              </p>
+              <button onClick={() => setAiSummary('')}
+                className="text-xs text-[#1a4f7a] hover:underline">Dismiss</button>
+            </div>
+            <p className="text-sm text-[#1a2744] leading-relaxed">{aiSummary}</p>
+          </div>
+        )}
+
 
         {/* ─── report table ─── */}
         <div className="card p-6">

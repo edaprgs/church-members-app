@@ -9,15 +9,18 @@ import { getZone, getAge, getAgeGroup, getYearsMarried } from "@/app/lib/utils";
 import type { Child, FormState } from "@/app/lib/types";
 import {
   EMPTY_FORM, REQUIRED_FIELDS, CAPITALIZE_FIELDS,
-  FELLOWSHIPS, MEMBERSHIP_TYPES, MEMBER_STATUSES, SUFFIX,
-  CIVIL_STATUS, SEX, BLOOD_TYPE, CITIZENSHIP, MINISTERS,
+  MEMBERSHIP_TYPES, MEMBER_STATUSES, SUFFIX,
+  CIVIL_STATUS, SEX, BLOOD_TYPE, CITIZENSHIP,
   HIGHEST_EDUCATION, OCCUPATION, INTEREST_SKILLS, CHURCH_INVOLVEMENT,
 } from "@/app/lib/constants";
 import Toast, { defaultToast, useToast, type ToastState } from "@/app/components/ui/Toast";
+import { useSettings } from "@/app/lib/api/members";
+
 import {
   ArrowLeft, Plus, User, Church, BookOpen,
-  Home, Phone, GraduationCap, Heart, Baby, Star, Save,
+  Home, Phone, GraduationCap, Heart, Baby, Star, Save, Link2Off, ExternalLink,
 } from "lucide-react";
+
 
 export default function EditMemberPage() {
   const params = useParams();
@@ -29,9 +32,20 @@ export default function EditMemberPage() {
   const [fetching, setFetching] = useState(true);
   const [errors,   setErrors]   = useState<Record<string, string>>({});
 
+  const { settings } = useSettings();
+
+  const fellowships =
+  settings?.fellowships?.length
+    ? settings.fellowships
+    : [];
+
+  const ministers = settings?.ministers ?? [];
+
   // ── Toast ─────────────────────────────────────────────────────────────────
   const [toast, setToast] = useState<ToastState>(defaultToast);
   const showToast = useToast(setToast);
+
+  const [showUnlinkModal, setShowUnlinkModal] = useState(false);
 
   const fieldRefs = useRef<Record<string, HTMLElement | null>>({});
 
@@ -150,6 +164,7 @@ export default function EditMemberPage() {
     try {
       const payload = {
         ...form,
+        user_id:              form.user_id              || null,
         birthdate:            form.birthdate            || null,
         wedding_date:         form.wedding_date         || null,
         baptism_date:         form.baptism_date         || null,
@@ -211,6 +226,67 @@ export default function EditMemberPage() {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <>
+
+      {showUnlinkModal && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 9999,
+          background: "rgba(0,0,0,0.45)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          padding: 16,
+        }}
+          onClick={() => setShowUnlinkModal(false)}
+        >
+          <div style={{
+            background: "#fff", borderRadius: 18, padding: "32px 28px 28px",
+            width: "100%", maxWidth: 360, textAlign: "center",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.18)",
+          }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{
+              width: 52, height: 52, borderRadius: 14,
+              background: "#fef2f2",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              margin: "0 auto 18px", color: "#c0392b",
+            }}>
+              <Link2Off size={22} />      {/* ← makes sense for unlink */}
+            </div>
+            <h2 style={{ fontSize: 18, fontWeight: 600, color: "#1a1714", margin: "0 0 8px" }}>
+              Unlink Account
+            </h2>
+            <p style={{ fontSize: 13.5, color: "#8c8480", margin: "0 0 24px", lineHeight: 1.5 }}>
+              This member will lose access to the member portal. You can re-link them later via the dashboard.
+            </p>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                onClick={() => setShowUnlinkModal(false)}
+                style={{
+                  flex: 1, padding: 11, borderRadius: 10,
+                  border: "1.5px solid #e2ddd8", background: "#fdfcfb",
+                  fontSize: 13.5, fontWeight: 600, color: "#5a5450", cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setForm(p => ({ ...p, user_id: "" }));
+                  setShowUnlinkModal(false);
+                  showToast("success", "Account Unlinked", "Click Update Member Record to save.");
+                }}
+                style={{
+                  flex: 1, padding: 11, borderRadius: 10,
+                  border: "none", background: "#c0392b",
+                  fontSize: 13.5, fontWeight: 600, color: "#fff", cursor: "pointer",
+                }}
+              >
+                Yes, Unlink
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Toast {...toast} onClose={() => setToast(p => ({ ...p, show: false }))} />
 
       <div className="reg-root">
@@ -231,27 +307,180 @@ export default function EditMemberPage() {
 
           {/* CHURCH RECORDS */}
           <RegSection title="Church Records" icon={<Church size={15} />}>
+            
+            {/* TOP INPUT GRID */}
             <div className="reg-grid-4">
-              <Field label="Red Book No."    name="red_book_no"     placeholder="XXXX"             form={form} handleChange={handleChange} errors={errors} fieldRefs={fieldRefs} required />
-              <SelectField label="Fellowship"      name="fellowship"      placeholder="Select fellowship" options={FELLOWSHIPS}      form={form} handleChange={handleChange} errors={errors} fieldRefs={fieldRefs} required />
-              <SelectField label="Membership Type" name="membership_type" placeholder="Select type"       options={MEMBERSHIP_TYPES} form={form} handleChange={handleChange} errors={errors} fieldRefs={fieldRefs} required />
-              <SelectField label="Status"          name="status"          placeholder="Select status"     options={MEMBER_STATUSES}  form={form} handleChange={handleChange} errors={errors} fieldRefs={fieldRefs} required />
+              <Field
+                label="Red Book No."
+                name="red_book_no"
+                placeholder="XXXX"
+                form={form}
+                handleChange={handleChange}
+                errors={errors}
+                fieldRefs={fieldRefs}
+                required
+              />
 
-              {/* Linked User ID — only on edit, not new */}
-              <div className="reg-field">
-                <label className="reg-label">
-                  Linked User ID{" "}
-                  <span style={{ fontSize: 10, color: "#a09890", textTransform: "none", fontWeight: 400 }}>(auth UUID)</span>
-                </label>
-                <input
-                  name="user_id"
-                  value={(form as FormState & { user_id?: string }).user_id ?? ""}
-                  onChange={handleChange}
-                  placeholder="Paste member's auth UUID here"
-                  className="reg-input"
-                  style={{ fontSize: 12 }}
-                />
-              </div>
+              <SelectField
+                label="Fellowship"
+                name="fellowship"
+                placeholder="Select fellowship"
+                options={settings?.fellowships ?? []}
+                form={form}
+                handleChange={handleChange}
+                errors={errors}
+                fieldRefs={fieldRefs}
+                required
+              />
+
+              <SelectField
+                label="Membership Type"
+                name="membership_type"
+                placeholder="Select type"
+                options={MEMBERSHIP_TYPES}
+                form={form}
+                handleChange={handleChange}
+                errors={errors}
+                fieldRefs={fieldRefs}
+                required
+              />
+
+              <SelectField
+                label="Status"
+                name="status"
+                placeholder="Select status"
+                options={MEMBER_STATUSES}
+                form={form}
+                handleChange={handleChange}
+                errors={errors}
+                fieldRefs={fieldRefs}
+                required
+              />
+            </div>
+
+            {/* LINKED ACCOUNT (FULL WIDTH BLOCK) */}
+            <div style={{ marginTop: 16 }}>
+              <label className="reg-label" style={{ marginBottom: 8, display: "block" }}>
+                Linked Account{" "}
+                <span style={{ fontSize: 10, color: "#a09890", fontWeight: 400 }}>
+                  (managed via dashboard)
+                </span>
+              </label>
+
+              {(form as any).user_id ? (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    padding: "12px 14px",
+                    borderRadius: 10,
+                    border: "1.5px solid #bbf7d0",
+                    background: "#f0fdf4",
+                  }}
+                >
+                  {/* LEFT STATUS */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div
+                      style={{
+                        width: 9,
+                        height: 9,
+                        borderRadius: "50%",
+                        background: "#16a34a",
+                      }}
+                    />
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "#15803d" }}>
+                      Account linked
+                    </span>
+                  </div>
+
+                  {/* RIGHT ACTION */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span
+                      style={{
+                        fontSize: 11,
+                        color: "#6b7280",
+                        fontFamily: "monospace",
+                        maxWidth: 160,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {(form as any).user_id}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowUnlinkModal(true)}
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: "#dc2626",
+                        background: "#fef2f2",
+                        border: "1px solid #fecaca",
+                        borderRadius: 8,
+                        padding: "5px 10px",
+                        cursor: "pointer",
+                        flexShrink: 0,
+                      }}
+                    >
+                      Unlink
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    padding: "12px 14px",
+                    borderRadius: 10,
+                    border: "1.5px solid #e2ddd8",
+                    background: "#faf9f7",
+                  }}
+                >
+                  {/* LEFT */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div
+                      style={{
+                        width: 9,
+                        height: 9,
+                        borderRadius: "50%",
+                        background: "#d1d5db",
+                      }}
+                    />
+                    <span style={{ fontSize: 13, color: "#a09890" }}>
+                      No account linked
+                    </span>
+                  </div>
+
+                  {/* RIGHT BUTTON */}
+                  <a
+                    href="/members/dashboard"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      fontSize: 11,
+                      fontWeight: 600,
+                      color: "#1a4f7a",
+                      background: "#e8f1f9",
+                      border: "1px solid #c5daf0",
+                      borderRadius: 8,
+                      padding: "5px 10px",
+                      textDecoration: "none",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    <ExternalLink size={14} />
+                    Link via Dashboard
+                  </a>
+                </div>
+              )}
             </div>
           </RegSection>
 
@@ -379,7 +608,9 @@ export default function EditMemberPage() {
                   className="reg-datalist"
                 />
                 <datalist id="ministers-edit">
-                  {MINISTERS.map(m => <option key={m} value={m} />)}
+                  {(settings?.ministers ?? []).map(m => (
+                    <option key={m} value={m} />
+                  ))}
                 </datalist>
               </div>
             </div>

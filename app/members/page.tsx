@@ -157,6 +157,8 @@ export default function MembersListPage() {
     setMembers((prev) => prev.filter((m) => m.id !== id));
     setSelected((prev: any) => prev?.id === id ? null : prev);
     showToast("success", "Member Deleted", "Record permanently removed.");  
+
+    window.dispatchEvent(new CustomEvent("member-count-changed"));
   };
 
   const activeFilterCount = [statusFilter, fellowshipFilter, birthdayMonth, weddingMonth].filter(Boolean).length;

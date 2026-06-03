@@ -9,19 +9,30 @@ import { getZone, getAge, getAgeGroup, getYearsMarried } from "@/app/lib/utils";
 import { Plus, ArrowLeft, User, Church, BookOpen,
   Home, Phone, GraduationCap, Heart, Baby, Star, CheckCircle2 } from "lucide-react";
 import {
-  FELLOWSHIPS, MEMBERSHIP_TYPES, MEMBER_STATUSES, SUFFIX,
-  CIVIL_STATUS, SEX, BLOOD_TYPE, CITIZENSHIP, MINISTERS,
+  MEMBERSHIP_TYPES, MEMBER_STATUSES, SUFFIX,
+  CIVIL_STATUS, SEX, BLOOD_TYPE, CITIZENSHIP,
   HIGHEST_EDUCATION, OCCUPATION, INTEREST_SKILLS, CHURCH_INVOLVEMENT,
   CAPITALIZE_FIELDS, REQUIRED_FIELDS, EMPTY_FORM,
 } from "@/app/lib/constants";
 import type { FormState, Child } from "@/app/lib/types";
 import Toast, { defaultToast, useToast, type ToastState } from "@/app/components/ui/Toast";
+import { useSettings } from "@/app/lib/api/members";
+
 
 export default function NewMemberPage() {
   const router    = useRouter();
   const [loading, setLoading] = useState(false);
   const [errors,  setErrors]  = useState<Record<string, string>>({});
   const fieldRefs = useRef<Record<string, HTMLElement | null>>({});
+
+  const { settings } = useSettings();
+
+  const fellowships =
+  settings?.fellowships?.length
+    ? settings.fellowships
+    : [];
+
+  const ministers = settings?.ministers ?? [];
 
   // ── Toast ─────────────────────────────────────────────────────────────────
   const [toast, setToast] = useState<ToastState>(defaultToast);
@@ -149,6 +160,8 @@ export default function NewMemberPage() {
     showToast("success", "Member Saved", "Church member record added successfully.");
     setForm({ ...EMPTY_FORM });
     setTimeout(() => router.push("/members"), 1800);
+
+    window.dispatchEvent(new CustomEvent("member-count-changed"));
   };
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -176,7 +189,7 @@ export default function NewMemberPage() {
           <RegSection title="Church Records" icon={<Church size={15} />}>
             <div className="reg-grid-4">
               <Field label="Red Book No."    name="red_book_no"     placeholder="XXXX" form={form} handleChange={handleChange} errors={errors} fieldRefs={fieldRefs} required />
-              <SelectField label="Fellowship"      name="fellowship"      placeholder="Select fellowship" options={FELLOWSHIPS}       form={form} handleChange={handleChange} errors={errors} fieldRefs={fieldRefs} required />
+              <SelectField label="Fellowship"      name="fellowship"      placeholder="Select fellowship" options={settings?.fellowships ?? []}      form={form} handleChange={handleChange} errors={errors} fieldRefs={fieldRefs} required />
               <SelectField label="Membership Type" name="membership_type" placeholder="Select type"       options={MEMBERSHIP_TYPES}  form={form} handleChange={handleChange} errors={errors} fieldRefs={fieldRefs} required />
               <SelectField label="Status"          name="status"          placeholder="Select status"     options={MEMBER_STATUSES}   form={form} handleChange={handleChange} errors={errors} fieldRefs={fieldRefs} required />
             </div>
@@ -306,7 +319,9 @@ export default function NewMemberPage() {
                   className="reg-datalist"
                 />
                 <datalist id="ministers-new">
-                  {MINISTERS.map(m => <option key={m} value={m} />)}
+                  {(settings?.ministers ?? []).map(m => (
+                    <option key={m} value={m} />
+                  ))}
                 </datalist>
               </div>
             </div>

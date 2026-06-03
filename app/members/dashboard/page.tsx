@@ -7,13 +7,14 @@ import { fetchAllMembers } from "@/app/lib/api/members";
 import type { Member } from "@/app/lib/types";
 import { getAge, getInitials, fmtShort, fmtDate } from "@/app/lib/utils";
 import KpiCard from "@/app/components/ui/KpiCard";
+import MemberLinkPanel from "@/app/members/dashboard/components/MemberLinkPanel"; 
+import MemberQA from "@/app/members/dashboard/components/MemberQA";
 import { useRouter } from "next/navigation";
 import {
   UserPlus, BarChart3, ArrowRight, Cake, Heart,
   Users, UserCheck, UserX, Skull, TrendingUp,
   Phone, Droplets, CalendarDays, Copy,
 } from "lucide-react";
-
 
 function SegBar({
   label, value, total, colorClass,
@@ -382,6 +383,11 @@ export default function HomePage() {
 
         </div>
 
+        {/* ─── member account linking ─── */}
+        <div className="card p-6">
+          <MemberLinkPanel />   
+        </div>
+
         {/* ─── birthday calendar ─── */}
         <div className="card p-6">
           <div className="flex items-center justify-between mb-5">
@@ -562,6 +568,13 @@ export default function HomePage() {
               ))}
             </div>
           )}
+        </div>
+
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">
+            Ask About Your Congregation
+          </h3>
+          <MemberQA />
         </div>
 
       </main>
