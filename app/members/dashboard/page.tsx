@@ -115,8 +115,13 @@ export default function HomePage() {
     const missingBirthdate  = members.filter(m => !m.birthdate).length;
     const missingBloodType  = members.filter(m => !m.blood_type).length;
     const missingMobileNum  = members.filter(m => !m.mobile_num).length;
-    const duplicateNames    = members.filter((m, i, arr) =>
-      arr.findIndex(x => x.first_name === m.first_name && x.last_name === m.last_name) !== i
+    const duplicateNames = members.filter((m, i, arr) =>
+      arr.findIndex(x =>
+        x.first_name?.trim().toLowerCase() === m.first_name?.trim().toLowerCase() &&
+        (x.middle_name || "").trim().toLowerCase() === (m.middle_name || "").trim().toLowerCase() &&
+        x.last_name?.trim().toLowerCase() === m.last_name?.trim().toLowerCase() &&
+        (x.suffix || "").trim().toLowerCase() === (m.suffix || "").trim().toLowerCase()
+      ) !== i
     ).length;
 
     const activeRate = total ? Math.round((active / total) * 100) : 0;
