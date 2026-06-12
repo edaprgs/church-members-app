@@ -169,8 +169,7 @@ export default function MembersListPage() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
-
+      
         * { box-sizing: border-box; }
 
         .ml-root {
@@ -512,7 +511,6 @@ export default function MembersListPage() {
           animation: spin 0.75s linear infinite;
           margin: 0 auto 12px;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
 
         /* ===== ACTION MENU ===== */
         .ml-action-btn {

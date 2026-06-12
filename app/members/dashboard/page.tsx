@@ -44,6 +44,8 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const router = useRouter();
+  const [showDuplicates, setShowDuplicates] = useState(false);
+
 
   useEffect(() => {
     const loadMembers = async () => {
@@ -115,14 +117,27 @@ export default function HomePage() {
     const missingBirthdate  = members.filter(m => !m.birthdate).length;
     const missingBloodType  = members.filter(m => !m.blood_type).length;
     const missingMobileNum  = members.filter(m => !m.mobile_num).length;
-    const duplicateNames = members.filter((m, i, arr) =>
-      arr.findIndex(x =>
-        x.first_name?.trim().toLowerCase() === m.first_name?.trim().toLowerCase() &&
-        (x.middle_name || "").trim().toLowerCase() === (m.middle_name || "").trim().toLowerCase() &&
-        x.last_name?.trim().toLowerCase() === m.last_name?.trim().toLowerCase() &&
-        (x.suffix || "").trim().toLowerCase() === (m.suffix || "").trim().toLowerCase()
-      ) !== i
-    ).length;
+    const counts = members.reduce<Record<string, number>>((acc, member) => {
+      const key = [
+        member.first_name,
+        member.middle_name || "",
+        member.last_name,
+        member.suffix || ""
+      ].join(" ");
+
+      acc[key] = (acc[key] || 0) + 1;
+
+      return acc;
+    }, {});
+
+    const duplicateNames = Object.entries(counts)
+      .filter(([_, count]) => count > 1)
+      .map(([name, count]) => ({
+        name,
+        count
+      }));
+
+    const duplicateNameCount = duplicateNames.length;
 
     const activeRate = total ? Math.round((active / total) * 100) : 0;
     const insightMembership =
@@ -144,7 +159,7 @@ export default function HomePage() {
       total, active, inactive, deceased, newThisMonth,
       growthRate, topFellowship, upcomingBirthdays,
       children, youth, adults, seniors, segTotal,
-      missingBirthdate, missingBloodType, missingMobileNum, duplicateNames,
+      missingBirthdate, missingBloodType, missingMobileNum, duplicateNames, duplicateNameCount,
       insightMembership, insightFellowship, insightGrowth,
       activeRate,
     };
@@ -368,22 +383,54 @@ export default function HomePage() {
             </h2>
             <div className="space-y-3">
               {[
-                { label: "Missing Birthdates",      value: stats.missingBirthdate, icon: CalendarDays, color: "text-red-500",    bg: "bg-red-50"    },
-                { label: "Missing Blood Type",       value: stats.missingBloodType, icon: Droplets,    color: "text-blue-500",   bg: "bg-blue-50"   },
-                { label: "Missing Contact Number",   value: stats.missingMobileNum, icon: Phone,       color: "text-amber-600",  bg: "bg-amber-50"  },
-                { label: "Possible Duplicate Names", value: stats.duplicateNames,   icon: Copy,        color: "text-purple-600", bg: "bg-purple-50" },
-              ].map(({ label, value, icon: Icon, color, bg }) => (
-                <div key={label} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
-                  <span className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${bg} ${color}`}>
-                    <Icon size={15} strokeWidth={2} />
-                  </span>
-                  <span className="text-sm text-gray-600 flex-1">{label}</span>
-                  <span className={`text-sm font-bold ${value > 0 ? color : "text-green-500"}`}>
-                    {value > 0 ? value : "✓"}
-                  </span>
-                </div>
-              ))}
+                { label: "Missing Birthdates",      value: stats.missingBirthdate,   icon: CalendarDays, color: "text-red-500",    bg: "bg-red-50"    },
+                { label: "Missing Blood Type",       value: stats.missingBloodType,   icon: Droplets,    color: "text-blue-500",   bg: "bg-blue-50"   },
+                { label: "Missing Contact Number",   value: stats.missingMobileNum,   icon: Phone,       color: "text-amber-600",  bg: "bg-amber-50"  },
+                { label: "Possible Duplicate Names", value: stats.duplicateNameCount, icon: Copy,        color: "text-purple-600", bg: "bg-purple-50" },
+              ].map(({ label, value, icon: Icon, color, bg }) => {
+                const isDuplicateRow = label === "Possible Duplicate Names";
+                const isToggled = isDuplicateRow && showDuplicates;
+
+                return (
+                  <div key={label}>
+                    <div
+                      className={`flex items-center gap-3 p-3 rounded-xl bg-gray-50 ${isDuplicateRow && value > 0 ? "cursor-pointer hover:bg-gray-100 transition" : ""}`}
+                      onClick={() => isDuplicateRow && value > 0 && setShowDuplicates(prev => !prev)}
+                    >
+                      <span className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${bg} ${color}`}>
+                        <Icon size={15} strokeWidth={2} />
+                      </span>
+                      <span className="text-sm text-gray-600 flex-1">{label}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`text-sm font-bold ${value > 0 ? color : "text-green-500"}`}>
+                          {value > 0 ? value : "✓"}
+                        </span>
+                        {isDuplicateRow && value > 0 && (
+                          <span className={`text-purple-400 text-xs transition-transform duration-200 inline-block ${isToggled ? "rotate-180" : ""}`}>
+                            ▾
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {isDuplicateRow && isToggled && (
+                      <ul className="mt-1 mb-1 space-y-1.5 px-1">
+                        {stats.duplicateNames.map((dup) => (
+                          <li
+                            key={dup.name}
+                            className="flex justify-between items-center bg-purple-50 px-3 py-2 rounded-lg text-sm"
+                          >
+                            <span>{dup.name}</span>
+                            <span className="font-semibold text-purple-600">{dup.count} records</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                );
+              })}
             </div>
+
           </div>
 
         </div>

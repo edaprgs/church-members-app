@@ -106,14 +106,7 @@ export default function ReportsPage() {
     const deceased = members.filter(m => m.status === "Deceased").length;
     const activeRate = total ? Math.round((active / total) * 100) : 0;
 
-    const missingBirthdate = members.filter(m => !m.birthdate).length;
-    const missingBloodType = members.filter(m => !m.blood_type).length;
-    const missingMobileNum = members.filter(m => !m.mobile_num).length;
-    const duplicateNames   = members.filter((m, i, arr) =>
-      arr.findIndex(x => x.first_name === m.first_name && x.last_name === m.last_name) !== i
-    ).length;
-
-    return { total, active, inactive, deceased, activeRate, missingBirthdate, missingBloodType, missingMobileNum, duplicateNames };
+    return { total, active, inactive, deceased, activeRate };
   }, [members]);
 
   /* ─── filtered + sorted members ─── */
@@ -270,28 +263,6 @@ export default function ReportsPage() {
           <KpiCard label="Deceased"      value={stats.deceased} icon={Skull}      colorClass="bg-gray-100 text-gray-500"    />
         </div>
 
-        {/* ─── data quality ─── */}
-        <div className="card p-6">
-          <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Data Quality</h3>
-          <div className="space-y-2">
-            {[
-              { label: "Missing Birthdates",      value: stats.missingBirthdate, icon: CalendarDays, color: "text-red-500",    bg: "bg-red-50"    },
-              { label: "Missing Blood Type",       value: stats.missingBloodType, icon: Droplets,    color: "text-blue-500",   bg: "bg-blue-50"   },
-              { label: "Missing Contact Number",   value: stats.missingMobileNum, icon: Phone,       color: "text-amber-600",  bg: "bg-amber-50"  },
-              { label: "Possible Duplicate Names", value: stats.duplicateNames,   icon: Copy,        color: "text-purple-600", bg: "bg-purple-50" },
-            ].map(({ label, value, icon: Icon, color, bg }) => (
-              <div key={label} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
-                <span className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${bg} ${color}`}>
-                  <Icon size={14} strokeWidth={2} />
-                </span>
-                <span className="text-sm text-gray-600 flex-1">{label}</span>
-                <span className={`text-sm font-bold ${value > 0 ? color : "text-green-500"}`}>
-                  {value > 0 ? value : "✓"}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
 
         {/* ─── AI Summary button ─── */}
         <div className="flex items-center justify-between mb-5">
@@ -338,7 +309,6 @@ export default function ReportsPage() {
 
           {/* toolbar */}
           <div className="flex flex-wrap items-center gap-3 mb-5">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mr-auto">Member Report Preview</h2>
 
             {/* search */}
             <div className="relative">
