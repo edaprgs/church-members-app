@@ -26,7 +26,7 @@ export function Field({ label, name, type = "text", placeholder, form, handleCha
   name: string;
   type?: string;
   placeholder?: string;
-  form: any;
+  form: Record<string, unknown>;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
 }) {
@@ -35,7 +35,7 @@ export function Field({ label, name, type = "text", placeholder, form, handleCha
       <label style={labelStyle}>{label}</label>
       <input
         type={type} name={name}
-        value={form[name] ?? ""}
+        value={(form[name] as string | number | undefined) ?? ""}
         onChange={handleChange}
         onBlur={handleBlur}
         placeholder={placeholder}
@@ -50,7 +50,7 @@ export function SelectField({ label, name, options, placeholder, form, handleCha
   name: string;
   options: string[];
   placeholder?: string;
-  form: any;
+  form: Record<string, unknown>;
   handleChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
 }) {
   return (
@@ -58,7 +58,7 @@ export function SelectField({ label, name, options, placeholder, form, handleCha
       <label style={labelStyle}>{label}</label>
       <select
         name={name}
-        value={form[name] ?? ""}
+        value={(form[name] as string | number | undefined) ?? ""}
         onChange={handleChange}
         style={{ ...inputStyle, appearance: "none", cursor: "pointer" }}
       >
@@ -69,7 +69,7 @@ export function SelectField({ label, name, options, placeholder, form, handleCha
   );
 }
 
-export function Computed({ label, value }: { label: string; value: any }) {
+export function Computed({ label, value }: { label: string; value: string | number | null | undefined }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       <label style={labelStyle}>

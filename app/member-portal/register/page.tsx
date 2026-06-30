@@ -13,12 +13,29 @@ import {
 type Child = { name: string; birthdate: string };
 type Toast = { id: number; title: string; sub: string; type: "success" | "error" };
 
+type RegisterForm = {
+  first_name: string; middle_name: string; last_name: string; suffix: string;
+  civil_status: string; sex: string; blood_type: string; citizenship: string;
+  birthdate: string; birthplace: string; age: string | number; age_group: string;
+  father: string; mother: string;
+  home_address: string; zone: string; office_address: string;
+  mobile_num: string; home_contact: string; office_contact: string; email: string;
+  education: string; school: string; year_graduated: string; occupation: string;
+  baptism_place: string; baptism_date: string; officiating_minister: string;
+  spouse: string; spouse_citizenship: string; wedding_date: string; years_married: string | number;
+  fellowship: string;
+  children: Child[];
+  interest_skills: string[];
+  church_involvement: string[];
+  [key: string]: unknown;
+};
+
 const CAPITALIZE = ["first_name","middle_name","last_name","birthplace","father","mother","home_address","office_address","school","spouse","baptism_place"];
 const REQUIRED = ["first_name","last_name","civil_status","sex","birthdate"];
 
 const MINISTERS = ["Rev. Tessie D. Torres","Rev. Jonathan M. Cal","Rev. Sherry T. Tubio","Rev. Silvestre Bontuyan Sr.","Rev. Napoleon A. Lumapguid","Rev. Luther F. Autor Sr.","Rev. Carlos D. Iglupas","Rev. Delfin Cardinal Jr.","Rev. Joan Mae E. Cañete","Rev. James S. Cañete","Rev. Rhee D. Telen","Rev. Jessie A. Belza","Rev. Roger Y. Edem","Rev. Merben Maglipac","Others"];
 
-const EMPTY: any = {
+const EMPTY: RegisterForm = {
   first_name:"",middle_name:"",last_name:"",suffix:"",
   civil_status:"",sex:"",blood_type:"",citizenship:"",
   birthdate:"",birthplace:"",age:"",age_group:"",
@@ -85,7 +102,7 @@ function Section({ title, icon, children }: { title: string; icon: React.ReactNo
 }
 
 // ── Computed display (stable, no inputs) ───────────────────
-function Computed({ label, value }: { label: string; value: any }) {
+function Computed({ label, value }: { label: string; value: string | number | null | undefined }) {
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
       <label style={labelStyle}>
@@ -187,55 +204,55 @@ export default function MemberRegisterPage() {
       const { data } = await supabase.from("members").select("id").eq("user_id", user.id).maybeSingle();
       if (data) { router.replace("/member-portal"); return; }
       const { data: { user: u } } = await supabase.auth.getUser();
-      setForm((p: any) => ({ ...p, email: u?.email || "" }));
+      setForm((p) => ({ ...p, email: u?.email || "" }));
       setCheckingExisting(false);
     })();
   }, [router]);
 
   useEffect(() => {
-    if (!form.birthdate) { setForm((p: any) => ({ ...p, age: "", age_group: "" })); return; }
+    if (!form.birthdate) { setForm((p) => ({ ...p, age: "", age_group: "" })); return; }
     const b = new Date(form.birthdate), today = new Date();
     let age = today.getFullYear() - b.getFullYear();
     if (today.getMonth() - b.getMonth() < 0 || (today.getMonth() - b.getMonth() === 0 && today.getDate() < b.getDate())) age--;
     const group = age <= 12 ? "Children" : age <= 30 ? "Youth" : age <= 59 ? "Adult" : "Senior";
-    setForm((p: any) => ({ ...p, age, age_group: group }));
+    setForm((p) => ({ ...p, age, age_group: group }));
   }, [form.birthdate]);
 
   useEffect(() => {
-    if (!form.wedding_date) { setForm((p: any) => ({ ...p, years_married: "" })); return; }
+    if (!form.wedding_date) { setForm((p) => ({ ...p, years_married: "" })); return; }
     const w = new Date(form.wedding_date), today = new Date();
     let yrs = today.getFullYear() - w.getFullYear();
     if (today.getMonth() - w.getMonth() < 0 || (today.getMonth() - w.getMonth() === 0 && today.getDate() < w.getDate())) yrs--;
-    setForm((p: any) => ({ ...p, years_married: yrs }));
+    setForm((p) => ({ ...p, years_married: yrs }));
   }, [form.wedding_date]);
 
   useEffect(() => {
-    if (!form.home_address) { setForm((p: any) => ({ ...p, zone: "" })); return; }
-    setForm((p: any) => ({ ...p, zone: getZone(form.home_address) }));
+    if (!form.home_address) { setForm((p) => ({ ...p, zone: "" })); return; }
+    setForm((p) => ({ ...p, zone: getZone(form.home_address) }));
   }, [form.home_address]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     if (name === "mobile_num") {
-      setForm((p: any) => ({ ...p, mobile_num: value.replace(/\D/g,"").slice(0,10) }));
+      setForm((p) => ({ ...p, mobile_num: value.replace(/\D/g,"").slice(0,10) }));
       return;
     }
     const fmt = CAPITALIZE.includes(name) ? titleCase(value) : value;
-    setForm((p: any) => ({ ...p, [name]: fmt }));
+    setForm((p) => ({ ...p, [name]: fmt }));
     if (errors[name]) setErrors(p => { const n = {...p}; delete n[name]; return n; });
   };
 
-  const addChild = () => setForm((p: any) => ({ ...p, children: [...p.children, { name:"", birthdate:"" }] }));
-  const removeChild = (i: number) => setForm((p: any) => ({ ...p, children: p.children.filter((_: any, idx: number) => idx !== i) }));
+  const addChild = () => setForm((p) => ({ ...p, children: [...p.children, { name:"", birthdate:"" }] }));
+  const removeChild = (i: number) => setForm((p) => ({ ...p, children: p.children.filter((_, idx) => idx !== i) }));
   const updateChild = (i: number, field: keyof Child, val: string) =>
-    setForm((p: any) => {
+    setForm((p) => {
       const updated = [...p.children];
       updated[i] = { ...updated[i], [field]: field === "name" ? titleCase(val) : val };
       return { ...p, children: updated };
     });
 
-  const toggleSkill = (v: string) => setForm((p: any) => ({ ...p, interest_skills: p.interest_skills.includes(v) ? p.interest_skills.filter((x: string) => x !== v) : [...p.interest_skills, v] }));
-  const toggleChurch = (v: string) => setForm((p: any) => ({ ...p, church_involvement: p.church_involvement.includes(v) ? p.church_involvement.filter((x: string) => x !== v) : [...p.church_involvement, v] }));
+  const toggleSkill = (v: string) => setForm((p) => ({ ...p, interest_skills: p.interest_skills.includes(v) ? p.interest_skills.filter((x: string) => x !== v) : [...p.interest_skills, v] }));
+  const toggleChurch = (v: string) => setForm((p) => ({ ...p, church_involvement: p.church_involvement.includes(v) ? p.church_involvement.filter((x: string) => x !== v) : [...p.church_involvement, v] }));
 
   const handleSubmit = async () => {
     const newErrors: Record<string,string> = {};

@@ -365,7 +365,7 @@ export default function EditMemberPage() {
                 </span>
               </label>
 
-              {(form as any).user_id ? (
+              {form.user_id ? (
                 <div
                   style={{
                     display: "flex",
@@ -406,7 +406,7 @@ export default function EditMemberPage() {
                         whiteSpace: "nowrap",
                       }}
                     >
-                      {(form as any).user_id}
+                      {form.user_id}
                     </span>
 
                     <button

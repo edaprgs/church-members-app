@@ -4,6 +4,7 @@ import "./page.css";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabase";
+import type { Member } from "../lib/types";
 import {
   User, Phone, Church, GraduationCap,
   Heart, BookOpen, Pencil, PenSquare, Clock3
@@ -11,7 +12,7 @@ import {
 
 export default function MemberPortalPage() {
   const router = useRouter();
-  const [member, setMember] = useState<any>(null);
+  const [member, setMember] = useState<Member | null>(null);
   const [loading, setLoading] = useState(true);
   const [noRecord, setNoRecord] = useState(false);
 
@@ -32,12 +33,12 @@ export default function MemberPortalPage() {
     })();
   }, [router]);
 
-  const fmt = (date: string) => {
+  const fmt = (date: string | null | undefined) => {
     if (!date) return "—";
     return new Date(date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
   };
 
-  const val = (v: any) => v || "—";
+  const val = (v: string | number | null | undefined) => v || "—";
 
   if (loading) return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", flexDirection: "column", gap: 12 }}>
@@ -151,6 +152,8 @@ export default function MemberPortalPage() {
     </div>
   );
 
+  if (!member) return null;
+
   return (
     <>
 
@@ -258,11 +261,11 @@ export default function MemberPortalPage() {
                   <span className="mp-val">{v}</span>
                 </div>
               ))}
-              {Array.isArray(member.children) && member.children.filter((c: any) => c.name).length > 0 && (
+              {Array.isArray(member.children) && member.children.filter((c) => c.name).length > 0 && (
                 <div className="mp-row">
                   <span className="mp-key">Children</span>
                   <span className="mp-val" style={{ textAlign: "right" }}>
-                    {member.children.filter((c: any) => c.name).map((c: any, i: number) => (
+                    {member.children.filter((c) => c.name).map((c, i) => (
                       <div key={i}>{c.name}{c.birthdate ? ` (${fmt(c.birthdate)})` : ""}</div>
                     ))}
                   </span>

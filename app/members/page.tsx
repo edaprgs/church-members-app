@@ -5,6 +5,7 @@
 import "./page.css";
 import { useEffect, useMemo, useState } from "react";
 import { fetchAllMembers } from "@/app/lib/api/members";
+import type { Member } from "@/app/lib/types";
 import { fmtDate } from "@/app/lib/utils";
 import Toast, { defaultToast, useToast, type ToastState } from "@/app/components/ui/Toast";
 import { statusConfig } from "@/app/components/ui/StatusBadge";
@@ -30,8 +31,8 @@ const defaultColumns: Record<string, boolean> = {
 
 export default function MembersListPage() {
   const router = useRouter();
-  const [members, setMembers] = useState<any[]>([]);
-  const [selected, setSelected] = useState<any>(null);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [selected, setSelected] = useState<Member | null>(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -161,7 +162,7 @@ export default function MembersListPage() {
       return;
     }
     setMembers((prev) => prev.filter((m) => m.id !== id));
-    setSelected((prev: any) => prev?.id === id ? null : prev);
+    setSelected((prev) => prev?.id === id ? null : prev);
     showToast("success", "Member Deleted", "Record permanently removed.");  
 
     window.dispatchEvent(new CustomEvent("member-count-changed"));
@@ -332,7 +333,7 @@ export default function MembersListPage() {
                       </div>
                     </td></tr>
                   ) : paginated.map((m) => {
-                    const sc = statusConfig(m.status);
+                    const sc = statusConfig(m.status ?? "");
                     return (
                       <tr key={m.id}>
                         {visibleColumns.red_book_no && <td style={{color:"#8c8480",fontWeight:500}}>{m.red_book_no || "—"}</td>}
@@ -373,7 +374,7 @@ export default function MembersListPage() {
                         {visibleColumns.spouse_citizenship && <td>{m.spouse_citizenship || "—"}</td>}
                         {visibleColumns.wedding_date && <td>{fmtDate(m.wedding_date)}</td>}
                         {visibleColumns.years_married && <td>{m.years_married || "—"}</td>}
-                        {visibleColumns.children && <td>{Array.isArray(m.children) ? m.children.map((c: any, i: number) => <div key={i}>{c.name} ({fmtDate(c.birthdate)})</div>) : m.children || "—"}</td>}
+                        {visibleColumns.children && <td>{Array.isArray(m.children) ? m.children.map((c, i) => <div key={i}>{c.name} ({fmtDate(c.birthdate)})</div>) : m.children || "—"}</td>}
                         {visibleColumns.interest_skills && <td>{Array.isArray(m.interest_skills) ? m.interest_skills.join(", ") : m.interest_skills || "—"}</td>}
                         {visibleColumns.church_involvement && <td>{Array.isArray(m.church_involvement) ? m.church_involvement.join(", ") : m.church_involvement || "—"}</td>}
                         {visibleColumns.date_of_decease && <td>{fmtDate(m.date_of_decease)}</td>}
@@ -461,7 +462,7 @@ export default function MembersListPage() {
                   <div className="ml-drawer-row">
                     <span className="ml-drawer-key">Children</span>
                     <span className="ml-drawer-val" style={{textAlign:"right"}}>
-                      {selected.children.map((c: any, i: number) => <div key={i}>{c.name}</div>)}
+                      {selected.children?.map((c, i) => <div key={i}>{c.name}</div>)}
                     </span>
                   </div>
                 )}
@@ -492,13 +493,13 @@ export default function MembersListPage() {
               </div>
 
               {/* INVOLVEMENT */}
-              {(selected.interest_skills?.length > 0 || selected.church_involvement?.length > 0) && (
+              {((selected.interest_skills?.length ?? 0) > 0 || (selected.church_involvement?.length ?? 0) > 0) && (
                 <div className="ml-drawer-section">
                   <p className="ml-drawer-section-title">Involvement</p>
-                  {selected.interest_skills?.length > 0 && (
+                  {(selected.interest_skills?.length ?? 0) > 0 && (
                     <div className="ml-drawer-row"><span className="ml-drawer-key">Skills</span><span className="ml-drawer-val">{Array.isArray(selected.interest_skills) ? selected.interest_skills.join(", ") : selected.interest_skills}</span></div>
                   )}
-                  {selected.church_involvement?.length > 0 && (
+                  {(selected.church_involvement?.length ?? 0) > 0 && (
                     <div className="ml-drawer-row"><span className="ml-drawer-key">Church</span><span className="ml-drawer-val">{Array.isArray(selected.church_involvement) ? selected.church_involvement.join(", ") : selected.church_involvement}</span></div>
                   )}
                 </div>
