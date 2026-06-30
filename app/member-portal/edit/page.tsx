@@ -234,7 +234,6 @@ export default function MemberEditPage() {
   if (fetching) return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", flexDirection: "column", gap: 12, background: C.pageBg }}>
       <div style={{ width: 28, height: 28, border: `3px solid ${C.border}`, borderTopColor: C.primary, borderRadius: "50%", animation: "spin 0.75s linear infinite" }} />
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 
@@ -300,8 +299,6 @@ export default function MemberEditPage() {
   return (
     <>
       <style>{`
-        @keyframes spin { to { transform: rotate(360deg) } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: translateY(0) } }
         input:focus, select:focus { border-color: ${C.primary} !important; box-shadow: 0 0 0 3px ${C.indigoGlow}; }
       `}</style>
 

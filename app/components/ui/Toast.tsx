@@ -37,13 +37,6 @@ export default function Toast({ show, type, title, sub, onClose }: ToastProps) {
         animation: "slideUp 0.25s ease",
       }}
     >
-      <style>{`
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(12px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
-
       <div style={{
         width: 36, height: 36, borderRadius: 10, flexShrink: 0,
         display: "flex", alignItems: "center", justifyContent: "center",

@@ -1,5 +1,6 @@
 "use client";
 
+import "./page.css";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabase";
@@ -48,7 +49,6 @@ export default function MemberPortalPage() {
         animation: "spin 0.75s linear infinite",
       }} />
       <p style={{ fontSize: 13, color: "#7b88a8" }}>Loading your profile…</p>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 
@@ -153,93 +153,6 @@ export default function MemberPortalPage() {
 
   return (
     <>
-      <style>{`
-        .mp-root { padding: 32px; width: 100%; }
-
-        .mp-header {
-          background: linear-gradient(135deg, #1e2d5a 0%, #2d3f7a 100%);
-          border-radius: 16px;
-          border: 1px solid rgba(99,102,241,0.2);
-          box-shadow: 0 4px 20px rgba(30,45,90,0.12);
-          padding: 32px; margin-bottom: 24px;
-          display: flex; align-items: center; justify-content: space-between; gap: 20px;
-        }
-        .mp-header-left { display: flex; align-items: center; gap: 20px; }
-        .mp-avatar {
-          width: 64px; height: 64px; border-radius: 16px;
-          background: rgba(255,255,255,0.15);
-          border: 1.5px solid rgba(255,255,255,0.25);
-          display: flex; align-items: center; justify-content: center;
-          flex-shrink: 0; color: #fff; font-size: 22px; font-weight: 700;
-          letter-spacing: -0.02em;
-        }
-        .mp-name { font-size: 22px; font-weight: 700; color: #fff; margin: 0 0 8px; letter-spacing: -0.02em; }
-        .mp-meta { display: flex; gap: 8px; flex-wrap: wrap; }
-        .mp-chip {
-          display: inline-flex; align-items: center; gap: 5px;
-          padding: 3px 10px; border-radius: 100px;
-          font-size: 11.5px; font-weight: 600;
-          background: rgba(255,255,255,0.12);
-          border: 1px solid rgba(255,255,255,0.2);
-          color: rgba(255,255,255,0.85);
-        }
-        .mp-chip-dot { width: 5px; height: 5px; border-radius: 50%; background: #4ade80; }
-        .mp-edit-btn {
-          display: flex; align-items: center; gap: 7px;
-          padding: 10px 18px; border-radius: 10px;
-          border: 1.5px solid rgba(255,255,255,0.25);
-          background: rgba(255,255,255,0.1);
-          color: rgba(255,255,255,0.9); font-size: 13.5px; font-weight: 600;
-          cursor: pointer; transition: all 0.15s; white-space: nowrap;
-          flex-shrink: 0;
-        }
-        .mp-edit-btn:hover {
-          background: rgba(255,255,255,0.2);
-          border-color: rgba(255,255,255,0.4);
-        }
-
-        .mp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        @media(max-width: 680px) {
-          .mp-grid { grid-template-columns: 1fr; }
-          .mp-root { padding: 20px; }
-        }
-
-        .mp-card {
-          background: #fff;
-          border-radius: 14px;
-          border: 1px solid #dde3f0;
-          overflow: hidden;
-          box-shadow: 0 2px 12px rgba(30,45,90,0.05);
-        }
-        .mp-card-header {
-          display: flex; align-items: center; gap: 10px;
-          padding: 14px 20px;
-          border-bottom: 1px solid #dde3f0;
-          background: linear-gradient(135deg, #f0f4ff 0%, #f5f7fc 100%);
-        }
-        .mp-card-icon {
-          width: 30px; height: 30px; border-radius: 8px;
-          background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
-          display: flex; align-items: center;
-          justify-content: center; color: #fff; flex-shrink: 0;
-          box-shadow: 0 2px 6px rgba(79,70,229,0.25);
-        }
-        .mp-card-title {
-          font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
-          text-transform: uppercase; color: #3730a3; margin: 0;
-        }
-        .mp-card-body { padding: 14px 20px; display: flex; flex-direction: column; gap: 2px; }
-        .mp-row {
-          display: flex; align-items: baseline;
-          justify-content: space-between; gap: 12px; padding: 7px 0;
-          border-bottom: 1px solid #f0f3fa;
-        }
-        .mp-row:last-child { border-bottom: none; }
-        .mp-key { font-size: 12px; color: #9aa3bc; font-weight: 600; flex-shrink: 0; min-width: 110px; }
-        .mp-val { font-size: 13px; color: #1e2d5a; font-weight: 500; text-align: right; }
-
-        .mp-status-dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; margin-right: 5px; }
-      `}</style>
 
       <div className="mp-root">
 

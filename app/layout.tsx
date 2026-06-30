@@ -1,6 +1,7 @@
 // app/layout.tsx 
 import type { Metadata } from "next";
 import "./globals.css";
+import "./styles/keyframes.css";
 
 export const metadata: Metadata = {
   title: "UCCP Iligan",

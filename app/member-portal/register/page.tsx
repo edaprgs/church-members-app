@@ -279,7 +279,6 @@ export default function MemberRegisterPage() {
   if (checkingExisting) return (
     <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100%", flexDirection:"column", gap:12 }}>
       <div style={{ width:28, height:28, border:"3px solid #dde3f0", borderTopColor:"#4f46e5", borderRadius:"50%", animation:"spin 0.75s linear infinite" }} />
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 
@@ -303,8 +302,6 @@ export default function MemberRegisterPage() {
   return (
     <>
       <style>{`
-        @keyframes spin{to{transform:rotate(360deg)}}
-        @keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
         input:focus, select:focus {
           border-color: #818cf8 !important;
           box-shadow: 0 0 0 3px rgba(99,102,241,0.1) !important;
