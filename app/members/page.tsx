@@ -56,9 +56,14 @@ export default function MembersListPage() {
 
   useEffect(() => {
     const loadMembers = async () => {
-      const data = await fetchAllMembers();
-      setMembers(data);
-      setLoading(false);
+      try {
+        const data = await fetchAllMembers();
+        setMembers(data);
+      } catch (err) {
+        showToast("error", "Failed to Load Members", err instanceof Error ? err.message : "Please try refreshing the page.");
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadMembers();

@@ -25,14 +25,21 @@ const MONTH_LABELS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct
 export default function AnalyticsPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading]   = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [chartYear, setChartYear] = useState(new Date().getFullYear());
   const [hoveredDay, setHoveredDay] = useState<number | null>(null);
 
   useEffect(() => {
     const loadMembers = async () => {
-      const data = await fetchAllMembers();
-      setMembers(data);
-      setLoading(false);
+      try {
+        const data = await fetchAllMembers();
+        setMembers(data);
+        setLoadError(null);
+      } catch (err) {
+        setLoadError(err instanceof Error ? err.message : "Failed to load members.");
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadMembers();
@@ -139,6 +146,18 @@ export default function AnalyticsPage() {
           <div key={i} className="card p-5 h-28 animate-pulse bg-gray-50" />
         ))}
       </div>
+    </div>
+  );
+
+  if (loadError) return (
+    <div className="p-6 flex flex-col items-center justify-center gap-3 text-center min-h-[60vh]">
+      <p className="text-sm text-gray-600">Failed to load members: {loadError}</p>
+      <button
+        className="text-sm px-4 py-2 rounded bg-gray-900 text-white"
+        onClick={() => window.location.reload()}
+      >
+        Retry
+      </button>
     </div>
   );
 

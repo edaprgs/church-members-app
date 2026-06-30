@@ -18,7 +18,7 @@ export async function fetchAllMembers(): Promise<Member[]> {
       .select("*")
       .range(from, from + BATCH - 1);
 
-    if (error) { console.error(error); break; }
+    if (error) throw new Error(error.message);
     if (!data || data.length === 0) break;
 
     all = [...all, ...data];
@@ -44,7 +44,7 @@ export async function fetchAllMembersSorted(): Promise<Member[]> {
       .order("last_name", { ascending: true })
       .range(from, from + BATCH - 1);
 
-    if (error) { console.error(error); break; }
+    if (error) throw new Error(error.message);
     if (!data || data.length === 0) break;
 
     all = [...all, ...data];

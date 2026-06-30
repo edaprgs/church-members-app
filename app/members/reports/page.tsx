@@ -42,6 +42,7 @@ const MONTHS = ["January","February","March","April","May","June","July","August
 export default function ReportsPage() {
   const [members, setMembers]               = useState<Member[]>([]);
   const [loading, setLoading]               = useState(true);
+  const [loadError, setLoadError]           = useState<string | null>(null);
   const [sortBy, setSortBy]                 = useState("az");
   const [birthMonth, setBirthMonth]         = useState("all");
   const [weddingMonth, setWeddingMonth]     = useState("all");
@@ -81,9 +82,15 @@ export default function ReportsPage() {
   /* ─── fetch ─── */
   useEffect(() => {
     const loadMembers = async () => {
-      const data = await fetchAllMembers();
-      setMembers(data);
-      setLoading(false);
+      try {
+        const data = await fetchAllMembers();
+        setMembers(data);
+        setLoadError(null);
+      } catch (err) {
+        setLoadError(err instanceof Error ? err.message : "Failed to load members.");
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadMembers();
@@ -405,6 +412,20 @@ export default function ReportsPage() {
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-8 h-8 border-4 border-[#c5daf0] border-t-[#1a4f7a] rounded-full animate-spin" />
                         <p className="text-sm text-gray-500">Loading members…</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : loadError ? (
+                  <tr>
+                    <td colSpan={orderedColumns.length + 1} className="py-16 text-center">
+                      <div className="flex flex-col items-center gap-3">
+                        <p className="text-sm text-gray-500">Failed to load members: {loadError}</p>
+                        <button
+                          className="text-sm px-4 py-2 rounded bg-gray-900 text-white"
+                          onClick={() => window.location.reload()}
+                        >
+                          Retry
+                        </button>
                       </div>
                     </td>
                   </tr>
