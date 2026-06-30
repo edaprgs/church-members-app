@@ -23,3 +23,22 @@ export async function createSupabaseServerClient() {
     }
   )
 }
+
+/**
+ * Verifies the request comes from an authenticated admin.
+ * Returns the session on success, or null if unauthenticated/not an admin.
+ */
+export async function requireAdminSession() {
+  const supabase = await createSupabaseServerClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) return null
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', session.user.id)
+    .maybeSingle()
+
+  if (profile?.role !== 'admin') return null
+  return session
+}

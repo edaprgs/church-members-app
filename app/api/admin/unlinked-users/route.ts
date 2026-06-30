@@ -3,13 +3,17 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { requireAdminSession } from "@/app/lib/supabase-server";
 
 const adminClient = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!   
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 export async function GET() {
+  const session = await requireAdminSession();
+  if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
   try {
     // 1. Get all auth users
     const { data: { users }, error: authError } = await adminClient.auth.admin.listUsers();

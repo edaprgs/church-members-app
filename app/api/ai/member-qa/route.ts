@@ -1,11 +1,10 @@
 import { GoogleGenAI } from "@google/genai"
 import { NextRequest, NextResponse } from "next/server"
-import { createSupabaseServerClient } from "@/app/lib/supabase-server"
+import { requireAdminSession } from "@/app/lib/supabase-server"
 
 export async function POST(req: NextRequest) {
-  const supabase = await createSupabaseServerClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const session = await requireAdminSession()
+  if (!session) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { question, stats } = await req.json()
 
