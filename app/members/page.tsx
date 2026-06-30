@@ -67,7 +67,7 @@ export default function MembersListPage() {
     };
 
     loadMembers();
-  }, []);
+  }, [showToast]);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);

@@ -30,7 +30,7 @@ export default function MemberPortalPage() {
       if (!data) { setNoRecord(true); return; }
       setMember(data);
     })();
-  }, []);
+  }, [router]);
 
   const fmt = (date: string) => {
     if (!date) return "—";

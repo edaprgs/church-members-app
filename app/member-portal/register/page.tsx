@@ -190,7 +190,7 @@ export default function MemberRegisterPage() {
       setForm((p: any) => ({ ...p, email: u?.email || "" }));
       setCheckingExisting(false);
     })();
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (!form.birthdate) { setForm((p: any) => ({ ...p, age: "", age_group: "" })); return; }

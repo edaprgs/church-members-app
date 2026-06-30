@@ -147,7 +147,7 @@ export default function MemberEditPage() {
         church_involvement: data.church_involvement || [],
       });
     })();
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (!form.birthdate) { setForm(p => ({ ...p, age: "", age_group: "" })); return; }

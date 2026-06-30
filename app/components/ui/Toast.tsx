@@ -3,6 +3,7 @@
 
 "use client";
 
+import { useCallback } from "react";
 import { CheckCircle2, AlertCircle, X } from "lucide-react";
 
 export type ToastState = {
@@ -66,8 +67,8 @@ export default function Toast({ show, type, title, sub, onClose }: ToastProps) {
 
 /** Helper to trigger a toast with auto-dismiss after 10s */
 export function useToast(setToast: React.Dispatch<React.SetStateAction<ToastState>>) {
-  return (type: "success" | "error", title: string, sub: string) => {
+  return useCallback((type: "success" | "error", title: string, sub: string) => {
     setToast({ show: true, type, title, sub });
     setTimeout(() => setToast((p) => ({ ...p, show: false })), 10000);
-  };
+  }, [setToast]);
 }

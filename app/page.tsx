@@ -47,7 +47,7 @@ export default function LandingPage() {
         clearTimeout(timeout);
       }
     })();
-  }, []);
+  }, [router]);
 
   const handleLogin = async () => {
     setError(""); setSuccess("");

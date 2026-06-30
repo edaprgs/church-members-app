@@ -77,7 +77,7 @@ export default function EditMemberPage() {
         church_involvement: data.church_involvement ?? [],
       });
     })();
-  }, [id]);
+  }, [id, showToast]);
 
   // ── Auto-compute age & age group ──────────────────────────────────────────
   useEffect(() => {
