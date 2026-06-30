@@ -5,7 +5,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase";
-import { getZone, getAge, getAgeGroup, getYearsMarried } from "@/app/lib/utils";
+import { getZone, getAge, getAgeGroup, getYearsMarried, titleCase } from "@/app/lib/utils";
 import type { Child, FormState } from "@/app/lib/types";
 import {
   EMPTY_FORM, REQUIRED_FIELDS, CAPITALIZE_FIELDS,
@@ -114,7 +114,7 @@ export default function EditMemberPage() {
       return;
     }
     const formatted = CAPITALIZE_FIELDS.includes(name)
-      ? value.replace(/\b\w/g, c => c.toUpperCase())
+      ? titleCase(value)
       : value;
     setForm(p => ({ ...p, [name]: formatted }));
     if (errors[name]) setErrors(p => { const n = { ...p }; delete n[name]; return n; });
@@ -126,7 +126,7 @@ export default function EditMemberPage() {
   const updateChild = (i: number, field: keyof Child, value: string) =>
     setForm(p => {
       const updated = [...p.children];
-      updated[i] = { ...updated[i], [field]: field === "name" ? value.replace(/\b\w/g, c => c.toUpperCase()) : value };
+      updated[i] = { ...updated[i], [field]: field === "name" ? titleCase(value) : value };
       return { ...p, children: updated };
     });
 

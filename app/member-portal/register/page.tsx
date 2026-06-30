@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabase";
+import { getZone, titleCase } from "@/app/lib/utils";
 import {
   ArrowLeft, Send, CheckCircle2, AlertCircle, X,
   User, MapPin, Church, GraduationCap,
@@ -16,14 +17,6 @@ const CAPITALIZE = ["first_name","middle_name","last_name","birthplace","father"
 const REQUIRED = ["first_name","last_name","civil_status","sex","birthdate"];
 
 const MINISTERS = ["Rev. Tessie D. Torres","Rev. Jonathan M. Cal","Rev. Sherry T. Tubio","Rev. Silvestre Bontuyan Sr.","Rev. Napoleon A. Lumapguid","Rev. Luther F. Autor Sr.","Rev. Carlos D. Iglupas","Rev. Delfin Cardinal Jr.","Rev. Joan Mae E. Cañete","Rev. James S. Cañete","Rev. Rhee D. Telen","Rev. Jessie A. Belza","Rev. Roger Y. Edem","Rev. Merben Maglipac","Others"];
-
-const getZone = (address: string) => {
-  const v = address.toLowerCase();
-  if (/(poblacion|cocogrove|rabago|villaverde|mahayahay|sabayle|tibanga|roosevelt|saray|canaway|noria|ubaldo laya|benitez|isabel|pala-o|andrada|manggas|del carmen|green|abegail|country hills|bagong silang|maria cristina|sudlonon|san miguel|pugaan|langilanon|gaite)/.test(v)) return "Zone 1";
-  if (/(tambo|bayug|gerona|bahayan|hinaplanon|franciscan|abragan|sto. rosario|sta. filomena|lambaguhon|barinaut|kiwalan|mandulog|luinab|tubaran|digkilaan|dalipuga|acmac|san roque|santiago)/.test(v)) return "Zone 2";
-  if (/(bara-as|laville|noville|doña maria|tipanoy|tubod|rosario|celdran|bacayo|carbide|tambacan|steel town|camague|tominobo|suarez|linamon|ditucalan|bosque|buru-un)/.test(v)) return "Zone 3";
-  return "";
-};
 
 const EMPTY: any = {
   first_name:"",middle_name:"",last_name:"",suffix:"",
@@ -227,7 +220,7 @@ export default function MemberRegisterPage() {
       setForm((p: any) => ({ ...p, mobile_num: value.replace(/\D/g,"").slice(0,10) }));
       return;
     }
-    const fmt = CAPITALIZE.includes(name) ? value.replace(/\b\w/g, c => c.toUpperCase()) : value;
+    const fmt = CAPITALIZE.includes(name) ? titleCase(value) : value;
     setForm((p: any) => ({ ...p, [name]: fmt }));
     if (errors[name]) setErrors(p => { const n = {...p}; delete n[name]; return n; });
   };
@@ -237,7 +230,7 @@ export default function MemberRegisterPage() {
   const updateChild = (i: number, field: keyof Child, val: string) =>
     setForm((p: any) => {
       const updated = [...p.children];
-      updated[i] = { ...updated[i], [field]: field === "name" ? val.replace(/\b\w/g, c => c.toUpperCase()) : val };
+      updated[i] = { ...updated[i], [field]: field === "name" ? titleCase(val) : val };
       return { ...p, children: updated };
     });
 

@@ -71,9 +71,13 @@ export const displayName = (m: {
 
 // ─── String helpers ───────────────────────────────────────────────────────────
 
-/** Title-case every word in a string */
+/**
+ * Title-case every word in a string. Capitalizes after the start of the
+ * string, whitespace, or a hyphen — but not after an apostrophe, so names
+ * like "O'Brien" or "Mary-Jane" come out correctly instead of "O'brien".
+ */
 export const titleCase = (value: string): string =>
-  value.replace(/\b\w/g, (c) => c.toUpperCase());
+  value.replace(/(^|[\s-])([a-z])/gi, (_, sep, c) => sep + c.toUpperCase());
 
 /** Strip non-digits and limit to 10 chars (PH mobile numbers) */
 export const formatMobile = (value: string): string =>

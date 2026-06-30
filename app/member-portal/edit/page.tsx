@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 import { Field, SelectField, Computed, Section } from "../components/MemberFormFields";
+import { getZone, titleCase } from "@/app/lib/utils";
 import {
   ArrowLeft, Save, CheckCircle2, AlertCircle, X,
   User, Calendar, Users, Heart, MapPin, GraduationCap,
@@ -14,14 +15,6 @@ type Child = { name: string; birthdate: string };
 type Toast = { id: number; title: string; sub: string; type: "success" | "error" };
 
 const CAPITALIZE = ["first_name", "middle_name", "last_name", "birthplace", "father", "mother", "home_address", "office_address", "school", "spouse", "baptism_place"];
-
-const getZone = (address: string) => {
-  const v = address.toLowerCase();
-  if (/(poblacion|cocogrove|rabago|villaverde|mahayahay|sabayle|tibanga|roosevelt|saray|canaway|noria|ubaldo laya|benitez|isabel|pala-o|andrada|manggas|del carmen|green|abegail|country hills|bagong silang|maria cristina|sudlonon|san miguel|pugaan|langilanon|gaite)/.test(v)) return "Zone 1";
-  if (/(tambo|bayug|gerona|bahayan|hinaplanon|franciscan|abragan|sto. rosario|sta. filomena|lambaguhon|barinaut|kiwalan|mandulog|luinab|tubaran|digkilaan|dalipuga|acmac|san roque|santiago)/.test(v)) return "Zone 2";
-  if (/(bara-as|laville|noville|doña maria|tipanoy|tubod|rosario|celdran|bacayo|carbide|tambacan|steel town|camague|tominobo|suarez|linamon|ditucalan|bosque|buru-un)/.test(v)) return "Zone 3";
-  return "";
-};
 
 const C = {
   headerFrom:   "#1e2d5a",
@@ -190,7 +183,7 @@ export default function MemberEditPage() {
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     if (CAPITALIZE.includes(name)) {
-      setForm(p => ({ ...p, [name]: value.replace(/\b\w/g, c => c.toUpperCase()) }));
+      setForm(p => ({ ...p, [name]: titleCase(value) }));
     }
   };
 
@@ -199,7 +192,7 @@ export default function MemberEditPage() {
   const updateChild = (i: number, field: keyof Child, val: string) =>
     setForm(p => {
       const updated = [...p.children];
-      updated[i] = { ...updated[i], [field]: field === "name" ? val.replace(/\b\w/g, c => c.toUpperCase()) : val };
+      updated[i] = { ...updated[i], [field]: field === "name" ? titleCase(val) : val };
       return { ...p, children: updated };
     });
 

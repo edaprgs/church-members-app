@@ -5,7 +5,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase";
-import { getZone, getAge, getAgeGroup, getYearsMarried } from "@/app/lib/utils";
+import { getZone, getAge, getAgeGroup, getYearsMarried, titleCase } from "@/app/lib/utils";
 import { Plus, ArrowLeft, User, Church, BookOpen,
   Home, Phone, GraduationCap, Heart, Baby, Star, CheckCircle2 } from "lucide-react";
 import {
@@ -69,7 +69,7 @@ export default function NewMemberPage() {
       return;
     }
     const formatted = CAPITALIZE_FIELDS.includes(name)
-      ? value.replace(/\b\w/g, c => c.toUpperCase())
+      ? titleCase(value)
       : value;
     setForm(p => ({ ...p, [name]: formatted }));
     if (errors[name]) setErrors(p => { const n = { ...p }; delete n[name]; return n; });
@@ -83,7 +83,7 @@ export default function NewMemberPage() {
       const updated = [...p.children];
       updated[i] = {
         ...updated[i],
-        [field]: field === "name" ? value.replace(/\b\w/g, c => c.toUpperCase()) : value,
+        [field]: field === "name" ? titleCase(value) : value,
       };
       return { ...p, children: updated };
     });
