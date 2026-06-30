@@ -6,7 +6,20 @@ export async function POST(req: NextRequest) {
   const session = await requireAdminSession()
   if (!session) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const { question, stats } = await req.json()
+  const body = await req.json().catch(() => null)
+  if (!body) return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+
+  const { question, stats } = body
+
+  if (typeof question !== 'string' || question.trim().length === 0) {
+    return NextResponse.json({ error: 'question must be a non-empty string' }, { status: 400 })
+  }
+  if (question.length > 500) {
+    return NextResponse.json({ error: 'question is too long (max 500 characters)' }, { status: 400 })
+  }
+  if (typeof stats !== 'object' || stats === null || Array.isArray(stats)) {
+    return NextResponse.json({ error: 'stats must be an object' }, { status: 400 })
+  }
 
   const prompt = `You are an assistant for a church membership database administrator at the United Church of Christ in the Philippines, Iligan City. Answer the question using only the aggregate statistics provided. Do not make up numbers. If the statistics don't contain enough information, say so clearly.
 

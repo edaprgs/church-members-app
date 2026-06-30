@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireAdminSession } from "@/app/lib/supabase-server"
 
 // Builds safe aggregate stats — never sends names, contacts, or UUIDs
-function buildStats(members: any[]) {
+function buildStats(members: Record<string, unknown>[]) {
   const total = members.length
   const byStatus:     Record<string, number> = {}
   const byFellowship: Record<string, number> = {}
@@ -13,12 +13,19 @@ function buildStats(members: any[]) {
   const byCivilStatus:Record<string, number> = {}
 
   for (const m of members) {
-    if (m.status)      byStatus[m.status]           = (byStatus[m.status]           || 0) + 1
-    if (m.fellowship)  byFellowship[m.fellowship]   = (byFellowship[m.fellowship]   || 0) + 1
-    if (m.age_group)   byAgeGroup[m.age_group]      = (byAgeGroup[m.age_group]      || 0) + 1
-    if (m.zone)        byZone[m.zone]               = (byZone[m.zone]               || 0) + 1
-    if (m.sex)         bySex[m.sex]                 = (bySex[m.sex]                 || 0) + 1
-    if (m.civil_status)byCivilStatus[m.civil_status]= (byCivilStatus[m.civil_status]|| 0) + 1
+    const status      = typeof m.status === "string" ? m.status : null
+    const fellowship  = typeof m.fellowship === "string" ? m.fellowship : null
+    const ageGroup    = typeof m.age_group === "string" ? m.age_group : null
+    const zone        = typeof m.zone === "string" ? m.zone : null
+    const sex         = typeof m.sex === "string" ? m.sex : null
+    const civilStatus = typeof m.civil_status === "string" ? m.civil_status : null
+
+    if (status)      byStatus[status]           = (byStatus[status]           || 0) + 1
+    if (fellowship)  byFellowship[fellowship]   = (byFellowship[fellowship]   || 0) + 1
+    if (ageGroup)    byAgeGroup[ageGroup]       = (byAgeGroup[ageGroup]       || 0) + 1
+    if (zone)        byZone[zone]               = (byZone[zone]               || 0) + 1
+    if (sex)         bySex[sex]                 = (bySex[sex]                 || 0) + 1
+    if (civilStatus) byCivilStatus[civilStatus] = (byCivilStatus[civilStatus] || 0) + 1
   }
 
   return { total, byStatus, byFellowship, byAgeGroup, byZone, bySex, byCivilStatus }
@@ -29,9 +36,19 @@ export async function POST(req: NextRequest) {
   const session = await requireAdminSession()
   if (!session) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const { members, filters } = await req.json()
-  if (!members || members.length === 0)
+  const body = await req.json().catch(() => null)
+  if (!body) return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+
+  const { members, filters } = body
+  if (!Array.isArray(members)) {
+    return NextResponse.json({ error: 'members must be an array' }, { status: 400 })
+  }
+  if (members.length === 0) {
     return NextResponse.json({ summary: 'No members match the current filters.' })
+  }
+  if (members.length > 5000) {
+    return NextResponse.json({ error: 'Too many members in report (max 5000)' }, { status: 400 })
+  }
 
   const stats = buildStats(members)
 
