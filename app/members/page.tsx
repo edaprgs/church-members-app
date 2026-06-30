@@ -4,7 +4,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { fetchAllMembers } from "@/app/lib/api/members";
-import { supabase } from "@/app/lib/supabase";
 import { fmtDate } from "@/app/lib/utils";
 import Toast, { defaultToast, useToast, type ToastState } from "@/app/components/ui/Toast";
 import { statusConfig } from "@/app/components/ui/StatusBadge";
@@ -154,9 +153,10 @@ export default function MembersListPage() {
   const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   const deleteMember = async (id: string) => {
-    const { error } = await supabase.from("members").delete().eq("id", id);
-    if (error) {
-      showToast("error", "Delete Failed", error.message);  
+    const res = await fetch(`/api/members/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const { error } = await res.json().catch(() => ({ error: "Delete failed." }));
+      showToast("error", "Delete Failed", error);
       return;
     }
     setMembers((prev) => prev.filter((m) => m.id !== id));

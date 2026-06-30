@@ -208,18 +208,25 @@ export default function MemberEditPage() {
   const handleSave = async () => {
     if (!memberId) return;
     setLoading(true);
-    const { error } = await supabase.from("members").update({
-      ...form,
-      birthdate: form.birthdate || null,
-      wedding_date: form.wedding_date || null,
-      baptism_date: form.baptism_date || null,
-      age: form.age !== "" ? form.age : null,
-      years_married: form.years_married !== "" ? form.years_married : null,
-      children: form.children.map(c => ({ ...c, birthdate: c.birthdate || null })),
-      updated_at: new Date().toISOString(),
-    }).eq("id", memberId);
+    const res = await fetch("/api/member-portal", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...form,
+        birthdate: form.birthdate || null,
+        wedding_date: form.wedding_date || null,
+        baptism_date: form.baptism_date || null,
+        age: form.age !== "" ? form.age : null,
+        years_married: form.years_married !== "" ? form.years_married : null,
+        children: form.children.map(c => ({ ...c, birthdate: c.birthdate || null })),
+      }),
+    });
     setLoading(false);
-    if (error) { addToast("Save Failed", error.message, "error"); return; }
+    if (!res.ok) {
+      const { error } = await res.json().catch(() => ({ error: "Save failed." }));
+      addToast("Save Failed", error, "error");
+      return;
+    }
     addToast("Profile Updated", "Your changes have been saved.", "success");
     setTimeout(() => router.push("/member-portal"), 1400);
   };

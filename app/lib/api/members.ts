@@ -2,7 +2,7 @@
 
 import { supabase } from "../supabase";
 import { useState, useEffect } from "react";
-import type { Member, FormState } from "../types";
+import type { Member } from "../types";
 
 /**
  * Fetches ALL members using batched pagination to bypass Supabase's 1000-row limit.
@@ -67,38 +67,6 @@ export async function fetchMemberById(id: string): Promise<Member | null> {
 
   if (error) { console.error(error); return null; }
   return data as Member;
-}
-
-/**
- * Inserts a new member record.
- */
-export async function insertMember(
-  payload: Partial<FormState>
-): Promise<{ error: string | null }> {
-  const { error } = await supabase.from("members").insert([payload]);
-  return { error: error?.message ?? null };
-}
-
-/**
- * Updates an existing member record.
- */
-export async function updateMember(
-  id: string,
-  payload: Partial<FormState>
-): Promise<{ error: string | null }> {
-  const { error } = await supabase
-    .from("members")
-    .update({ ...payload, updated_at: new Date() })
-    .eq("id", id);
-  return { error: error?.message ?? null };
-}
-
-/**
- * Deletes a member by ID.
- */
-export async function deleteMember(id: string): Promise<{ error: string | null }> {
-  const { error } = await supabase.from("members").delete().eq("id", id);
-  return { error: error?.message ?? null };
 }
 
 /**

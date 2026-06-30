@@ -192,9 +192,14 @@ export default function EditMemberPage() {
         updated_at: new Date(),
       };
 
-      const { error } = await supabase.from("members").update(payload).eq("id", id);
-      if (error) {
-        showToast("error", "Update Failed", error.message);
+      const res = await fetch(`/api/members/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const { error } = await res.json().catch(() => ({ error: "Update failed." }));
+        showToast("error", "Update Failed", error);
         return;
       }
 

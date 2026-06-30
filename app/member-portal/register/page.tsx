@@ -250,20 +250,25 @@ export default function MemberRegisterPage() {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.replace("/"); return; }
-    const { error } = await supabase.from("members").insert({
-      ...form,
-      user_id: user.id,
-      status: "Pending",
-      membership_type: "Regular",
-      birthdate: form.birthdate || null,
-      wedding_date: form.wedding_date || null,
-      baptism_date: form.baptism_date || null,
-      age: form.age || null,
-      years_married: form.years_married || null,
-      children: form.children.map((c: Child) => ({ ...c, birthdate: c.birthdate || null })),
+    const res = await fetch("/api/member-portal", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...form,
+        birthdate: form.birthdate || null,
+        wedding_date: form.wedding_date || null,
+        baptism_date: form.baptism_date || null,
+        age: form.age || null,
+        years_married: form.years_married || null,
+        children: form.children.map((c: Child) => ({ ...c, birthdate: c.birthdate || null })),
+      }),
     });
     setLoading(false);
-    if (error) { addToast("Submission Failed", error.message, "error"); return; }
+    if (!res.ok) {
+      const { error } = await res.json().catch(() => ({ error: "Submission failed." }));
+      addToast("Submission Failed", error, "error");
+      return;
+    }
     setSubmitted(true);
   };
 

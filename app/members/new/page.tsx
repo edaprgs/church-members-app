@@ -4,7 +4,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/app/lib/supabase";
 import { getZone, getAge, getAgeGroup, getYearsMarried, titleCase } from "@/app/lib/utils";
 import { Plus, ArrowLeft, User, Church, BookOpen,
   Home, Phone, GraduationCap, Heart, Baby, Star, CheckCircle2 } from "lucide-react";
@@ -149,11 +148,16 @@ export default function NewMemberPage() {
       children: form.children.map(c => ({ ...c, birthdate: c.birthdate || null })),
     };
 
-    const { error } = await supabase.from("members").insert([payload]);
+    const res = await fetch("/api/members", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
     setLoading(false);
 
-    if (error) {
-      showToast("error", "Save Failed", error.message);
+    if (!res.ok) {
+      const { error } = await res.json().catch(() => ({ error: "Save failed." }));
+      showToast("error", "Save Failed", error);
       return;
     }
 
