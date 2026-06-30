@@ -138,7 +138,7 @@ export default function HomePage() {
     }, {});
 
     const duplicateNames = Object.entries(counts)
-      .filter(([_, count]) => count > 1)
+      .filter(([, count]) => count > 1)
       .map(([name, count]) => ({
         name,
         count

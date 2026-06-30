@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
-import { User, Pencil, LogOut, X } from "lucide-react";
+import { User, Pencil, LogOut } from "lucide-react";
 
 export default function MemberSidebar() {
   const pathname = usePathname();

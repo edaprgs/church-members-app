@@ -3,7 +3,6 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/app/lib/supabase";
-import { useRouter } from "next/navigation";
 import { SettingsState, ToastState } from "@/app/lib/types";
 import {
   Church, Users, Save, Plus,
@@ -101,7 +100,6 @@ function TagList({
 
 // ─── Main page ─────────────────────────────────────────────────────────────────
 export default function SettingsPage() {
-  const router = useRouter();
   const [settings, setSettings]     = useState<SettingsState>(DEFAULT_SETTINGS);
   const [loading,  setLoading]       = useState(false);
   const [fetching, setFetching]      = useState(true);
@@ -123,7 +121,7 @@ export default function SettingsPage() {
   // ── Load settings from Supabase ──────────────────────────────────────────
   useEffect(() => {
     (async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("settings")
         .select("*")
         .eq("id", 1)

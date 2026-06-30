@@ -20,7 +20,7 @@ export default function MemberPortalPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.replace("/"); return; }
 
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("members")
         .select("*")
         .eq("user_id", user.id)
@@ -70,7 +70,7 @@ export default function MemberPortalPage() {
             Welcome to the Member Portal
           </h2>
           <p style={{ fontSize: 14, color: "#7b88a8", margin: 0, lineHeight: 1.5 }}>
-            You don't have a membership record linked yet.
+            You don&apos;t have a membership record linked yet.
           </p>
         </div>
         <div style={{ padding: 32, display: "flex", flexDirection: "column", gap: 16 }}>

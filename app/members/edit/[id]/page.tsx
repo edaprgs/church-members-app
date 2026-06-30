@@ -34,13 +34,6 @@ export default function EditMemberPage() {
 
   const { settings } = useSettings();
 
-  const fellowships =
-  settings?.fellowships?.length
-    ? settings.fellowships
-    : [];
-
-  const ministers = settings?.ministers ?? [];
-
   // ── Toast ─────────────────────────────────────────────────────────────────
   const [toast, setToast] = useState<ToastState>(defaultToast);
   const showToast = useToast(setToast);

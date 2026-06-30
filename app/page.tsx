@@ -41,7 +41,7 @@ export default function LandingPage() {
         } else {
           setCheckingSession(false);
         }
-      } catch (e) {
+      } catch {
         setCheckingSession(false);
       } finally {
         clearTimeout(timeout);

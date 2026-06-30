@@ -10,7 +10,7 @@ import StatusBadge from "@/app/components/ui/StatusBadge";
 import { fmtDate, escapeCSV } from "@/app/lib/utils";
 import {
   SearchX, Download, Users, UserCheck, UserX, Skull,
-  CalendarDays, Droplets, Phone, Copy, Check, Search, ChevronLeft, ChevronRight,
+  Check, Search, ChevronLeft, ChevronRight,
 } from "lucide-react";
 
 
@@ -72,7 +72,7 @@ export default function ReportsPage() {
       const data = await res.json()
       if (data.error) throw new Error(data.error)
       setAiSummary(data.summary)
-    } catch (err) {
+    } catch {
       setAiSummary('Could not generate summary. Please try again.')
     } finally {
       setSummarizing(false)

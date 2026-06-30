@@ -453,7 +453,7 @@ export default function MemberRegisterPage() {
 
           <Section title="Children" icon={<Baby size={14}/>}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
-              <span style={{ fontSize:13, color:"#9aa3bc" }}>Add your children's information</span>
+              <span style={{ fontSize:13, color:"#9aa3bc" }}>Add your children&apos;s information</span>
               <button onClick={addChild} style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"7px 14px", borderRadius:8, border:"1.5px dashed #b0bbd4", background:"transparent", color:"#7b88a8", fontSize:13, cursor:"pointer" }}>
                 + Add Child
               </button>

@@ -436,7 +436,7 @@ export default function MemberEditPage() {
 
           <Section title="Children" icon={Baby}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <span style={{ fontSize: 13, color: C.secText }}>Add or update your children's records</span>
+              <span style={{ fontSize: 13, color: C.secText }}>Add or update your children&apos;s records</span>
               <button
                 onClick={addChild}
                 style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 8, border: `1.5px dashed ${C.border}`, background: "transparent", color: C.secText, fontSize: 13, cursor: "pointer" }}

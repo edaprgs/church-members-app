@@ -46,7 +46,7 @@ export async function GET() {
     
 
     return NextResponse.json({ users: unlinked });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

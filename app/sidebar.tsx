@@ -82,7 +82,7 @@ export default function Sidebar() {
               Sign Out
             </h2>
             <p style={{ fontSize: 13.5, color: "#8c8480", margin: "0 0 24px", lineHeight: 1.5 }}>
-              Are you sure you want to sign out? You'll need to sign in again to access your account.
+              Are you sure you want to sign out? You&apos;ll need to sign in again to access your account.
             </p>
 
             <div style={{ display: "flex", gap: 10 }}>
