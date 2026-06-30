@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabase";
-import { getZone, titleCase } from "@/app/lib/utils";
+import { getZone, getAge, getAgeGroup, getYearsMarried, titleCase } from "@/app/lib/utils";
 import {
   ArrowLeft, Send, CheckCircle2, AlertCircle, X,
   User, MapPin, Church, GraduationCap,
@@ -211,19 +211,13 @@ export default function MemberRegisterPage() {
 
   useEffect(() => {
     if (!form.birthdate) { setForm((p) => ({ ...p, age: "", age_group: "" })); return; }
-    const b = new Date(form.birthdate), today = new Date();
-    let age = today.getFullYear() - b.getFullYear();
-    if (today.getMonth() - b.getMonth() < 0 || (today.getMonth() - b.getMonth() === 0 && today.getDate() < b.getDate())) age--;
-    const group = age <= 12 ? "Children" : age <= 30 ? "Youth" : age <= 59 ? "Adult" : "Senior";
-    setForm((p) => ({ ...p, age, age_group: group }));
+    const age = getAge(form.birthdate);
+    setForm((p) => ({ ...p, age, age_group: getAgeGroup(age) }));
   }, [form.birthdate]);
 
   useEffect(() => {
     if (!form.wedding_date) { setForm((p) => ({ ...p, years_married: "" })); return; }
-    const w = new Date(form.wedding_date), today = new Date();
-    let yrs = today.getFullYear() - w.getFullYear();
-    if (today.getMonth() - w.getMonth() < 0 || (today.getMonth() - w.getMonth() === 0 && today.getDate() < w.getDate())) yrs--;
-    setForm((p) => ({ ...p, years_married: yrs }));
+    setForm((p) => ({ ...p, years_married: getYearsMarried(form.wedding_date) }));
   }, [form.wedding_date]);
 
   useEffect(() => {

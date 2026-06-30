@@ -5,16 +5,18 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase";
-import { getZone, getAge, getAgeGroup, getYearsMarried, titleCase } from "@/app/lib/utils";
 import type { Child, FormState } from "@/app/lib/types";
 import {
-  EMPTY_FORM, REQUIRED_FIELDS, CAPITALIZE_FIELDS,
+  EMPTY_FORM, REQUIRED_FIELDS,
   MEMBERSHIP_TYPES, MEMBER_STATUSES, SUFFIX,
   CIVIL_STATUS, SEX, BLOOD_TYPE, CITIZENSHIP,
   HIGHEST_EDUCATION, OCCUPATION, INTEREST_SKILLS, CHURCH_INVOLVEMENT,
 } from "@/app/lib/constants";
 import Toast, { defaultToast, useToast, type ToastState } from "@/app/components/ui/Toast";
 import { useSettings } from "@/app/lib/api/members";
+import { useMemberAutoCompute, useMemberFormHandlers } from "@/app/lib/hooks/useMemberFormState";
+import { sanitizeMemberPayload } from "@/app/lib/buildMemberPayload";
+import { RegSection, Field, SelectField } from "@/app/members/components/MemberFormFields";
 
 import {
   ArrowLeft, Plus, User, Church, BookOpen,
@@ -79,66 +81,9 @@ export default function EditMemberPage() {
     })();
   }, [id, showToast]);
 
-  // ── Auto-compute age & age group ──────────────────────────────────────────
-  useEffect(() => {
-    if (!form.birthdate) { setForm(p => ({ ...p, age: "", age_group: "" })); return; }
-    const age      = getAge(form.birthdate);
-    const ageGroup = getAgeGroup(age);
-    setForm(p => ({ ...p, age, age_group: ageGroup }));
-  }, [form.birthdate]);
-
-  // ── Auto-compute years married ────────────────────────────────────────────
-  useEffect(() => {
-    if (!form.wedding_date) { setForm(p => ({ ...p, years_married: "" })); return; }
-    setForm(p => ({ ...p, years_married: getYearsMarried(form.wedding_date!) }));
-  }, [form.wedding_date]);
-
-  // ── Auto-compute zone ─────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!form.home_address) { setForm(p => ({ ...p, zone: "" })); return; }
-    setForm(p => ({ ...p, zone: getZone(form.home_address!) }));
-  }, [form.home_address]);
-
-  // ── Handlers ──────────────────────────────────────────────────────────────
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    if (name === "mobile_num") {
-      setForm(p => ({ ...p, mobile_num: value.replace(/\D/g, "").slice(0, 10) }));
-      return;
-    }
-    const formatted = CAPITALIZE_FIELDS.includes(name)
-      ? titleCase(value)
-      : value;
-    setForm(p => ({ ...p, [name]: formatted }));
-    if (errors[name]) setErrors(p => { const n = { ...p }; delete n[name]; return n; });
-  };
-
-  // ── Children ──────────────────────────────────────────────────────────────
-  const addChild    = () => setForm(p => ({ ...p, children: [...p.children, { name: "", birthdate: "" }] }));
-  const removeChild = (i: number) => setForm(p => ({ ...p, children: p.children.filter((_, idx) => idx !== i) }));
-  const updateChild = (i: number, field: keyof Child, value: string) =>
-    setForm(p => {
-      const updated = [...p.children];
-      updated[i] = { ...updated[i], [field]: field === "name" ? titleCase(value) : value };
-      return { ...p, children: updated };
-    });
-
-  // ── Tag toggles ───────────────────────────────────────────────────────────
-  const toggleSkills = (v: string) =>
-    setForm(p => ({
-      ...p,
-      interest_skills: p.interest_skills.includes(v)
-        ? p.interest_skills.filter(x => x !== v)
-        : [...p.interest_skills, v],
-    }));
-
-  const toggleChurch = (v: string) =>
-    setForm(p => ({
-      ...p,
-      church_involvement: p.church_involvement.includes(v)
-        ? p.church_involvement.filter(x => x !== v)
-        : [...p.church_involvement, v],
-    }));
+  useMemberAutoCompute(form, setForm);
+  const { handleChange, addChild, removeChild, updateChild, toggleSkills, toggleChurch } =
+    useMemberFormHandlers(setForm, errors, setErrors);
 
   // ── Submit ────────────────────────────────────────────────────────────────
   const updateMember = async () => {
@@ -156,32 +101,8 @@ export default function EditMemberPage() {
 
     try {
       const payload = {
-        ...form,
-        user_id:              form.user_id              || null,
-        birthdate:            form.birthdate            || null,
-        wedding_date:         form.wedding_date         || null,
-        baptism_date:         form.baptism_date         || null,
-        date_of_decease:      form.date_of_decease      || null,
-        age:                  form.age                  || null,
-        years_married:        form.years_married        || null,
-        middle_name:          form.middle_name          || null,
-        suffix:               form.suffix               || null,
-        blood_type:           form.blood_type           || null,
-        birthplace:           form.birthplace           || null,
-        father:               form.father               || null,
-        mother:               form.mother               || null,
-        home_address:         form.home_address         || null,
-        office_address:       form.office_address       || null,
-        email:                form.email                || null,
-        education:            form.education            || null,
-        school:               form.school               || null,
-        year_graduated:       form.year_graduated       || null,
-        occupation:           form.occupation           || null,
-        baptism_place:        form.baptism_place        || null,
-        officiating_minister: form.officiating_minister || null,
-        spouse:               form.spouse               || null,
-        spouse_citizenship:   form.spouse_citizenship   || null,
-        children: form.children.map(c => ({ ...c, birthdate: c.birthdate || null })),
+        ...sanitizeMemberPayload(form),
+        user_id: form.user_id || null,
         updated_at: new Date(),
       };
 
@@ -695,81 +616,5 @@ export default function EditMemberPage() {
         </div>
       </div>
     </>
-  );
-}
-
-// ─── Section wrapper ──────────────────────────────────────────────────────────
-function RegSection({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
-  return (
-    <div className="reg-section">
-      <div className="reg-section-header">
-        <div className="reg-section-icon">{icon}</div>
-        <h2 className="reg-section-title">{title}</h2>
-      </div>
-      <div className="reg-section-body">{children}</div>
-    </div>
-  );
-}
-
-// ─── Text / date input field ──────────────────────────────────────────────────
-function Field({
-  label, name, form, handleChange, errors, fieldRefs,
-  required, placeholder, type = "text", disabled,
-}: {
-  label?: string; name: string; form: FormState;
-  handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  errors?: Record<string, string>;
-  fieldRefs?: React.MutableRefObject<Record<string, HTMLElement | null>>;
-  required?: boolean; placeholder?: string; type?: string; disabled?: boolean;
-}) {
-  return (
-    <div className="reg-field">
-      {label && (
-        <label className="reg-label">
-          {label}{required && <span className="req">*</span>}
-        </label>
-      )}
-      <input
-        ref={el => { if (fieldRefs?.current) fieldRefs.current[name] = el; }}
-        type={type} name={name}
-        value={(form as Record<string, unknown>)[name] as string ?? ""}
-        onChange={handleChange} placeholder={placeholder} disabled={disabled}
-        className={`reg-input ${errors?.[name] ? "error" : ""}`}
-      />
-      {errors?.[name] && <span className="reg-error-msg">↑ {errors[name]}</span>}
-    </div>
-  );
-}
-
-// ─── Select field ─────────────────────────────────────────────────────────────
-function SelectField({
-  label, name, form, handleChange, options, placeholder, errors, fieldRefs, required,
-}: {
-  label?: string; name: string; form: FormState;
-  handleChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  options: string[]; placeholder?: string;
-  errors?: Record<string, string>;
-  fieldRefs?: React.MutableRefObject<Record<string, HTMLElement | null>>;
-  required?: boolean;
-}) {
-  return (
-    <div className="reg-field">
-      {label && (
-        <label className="reg-label">
-          {label}{required && <span className="req">*</span>}
-        </label>
-      )}
-      <select
-        ref={el => { if (fieldRefs?.current) fieldRefs.current[name] = el; }}
-        name={name}
-        value={(form as Record<string, unknown>)[name] as string ?? ""}
-        onChange={handleChange}
-        className={`reg-select ${errors?.[name] ? "error" : ""}`}
-      >
-        <option value="" disabled>{placeholder ?? `Select ${label}`}</option>
-        {options.map(o => <option key={o} value={o}>{o}</option>)}
-      </select>
-      {errors?.[name] && <span className="reg-error-msg">↑ {errors[name]}</span>}
-    </div>
   );
 }
